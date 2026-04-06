@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Texno Markaz — o‘quv markazi CRM va marketing sayti
 
-## Getting Started
+Next.js (App Router), TypeScript, Tailwind CSS, Supabase (PostgreSQL, Auth, Storage), React Hook Form, Zod, Recharts. Deploy: Vercel.
 
-First, run the development server:
+## Imkoniyatlar
+
+- **Ommaviy sayt (o‘zbekcha):** bosh sahifa, kurslar, paketlar, ariza formasi (validatsiya, muvaffaqiyat animatsiyasi).
+- **Analytics:** `visitor_id` (localStorage), sahifa, referrer, UTM, paket ko‘rinishi, ariza yuborilganligi (visitor yozuvlari).
+- **Admin CRM:** dashboard (diagramma, konversiya, ogohlantirishlar), arizalar (status, izoh, o‘quvchiga aylantirish), o‘quvchilar, davomat, to‘lovlar, kurs/paket boshqaruvi, sozlamalar, faollik jurnali.
+- **API:** `POST /api/ariza` (service role), `POST /api/track` (anon), `GET /api/admin/export/leads` (CSV), `POST /api/telegram/webhook` (tayyor).
+- **Xavfsizlik:** RLS — arizalar faqat server orqali (service role); ommaviy faqat kuzatuv va o‘qish (kurs/paket/sozlamalar).
+
+## O‘rnatish
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+`.env.local` maydonlari:
+
+| O‘zgaruvchi | Tavsif |
+|-------------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase loyiha URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon kalit |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Faqat serverda** — ariza va visitor yangilash uchun majburiy |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Ixtiyoriy — yangi ariza xabari |
+| `TELEGRAM_WEBHOOK_SECRET` | Ixtiyoriy — `/api/telegram/webhook` uchun |
+
+## Ma’lumotlar bazasi
+
+1. Supabase loyihasida **SQL Editor** oching.
+2. `supabase/migrations/20250406000000_init.sql` faylining **barcha** mazmunini nusxalab bitta so‘rov sifatida bajaring.
+
+3. (Agar kerak bo‘lsa) `20250406000001_visitors_course_slug.sql` — `visitors.course_slug`; yangi `init.sql` oxirida ham mavjud bo‘lishi mumkin.
+
+4. Eski demo arizalar/o‘quvchilar qolgan bo‘lsa: `20250406000002_clear_demo_operational_data.sql` ni bajaring.
+
+`init.sql` kurs/paket katalogi va sozlamalarni beradi; bosh sahifa **Raqamlarda** bloki `public_stats` orqali boshlanadi (**0**), haqiqiy raqamlarni **Admin → Sozlamalar → Bosh sahifa statistikasi** da kiriting.
+
+## Admin foydalanuvchi
+
+1. Supabase **Authentication → Users → Add user** — email va parol bilan foydalanuvchi yarating.
+2. SQL:
+
+```sql
+update public.profiles
+set is_admin = true
+where id = 'AUTH_USER_UUID_BU_YERGA';
+```
+
+`AUTH_USER_UUID_BU_YERGA` o‘rniga yaratilgan foydalanuvchining `id` (UUID) qiymatini qo‘ying.
+
+3. Brauzerda `/admin/login` — shu email va parol bilan kiring.
+
+## Ishga tushirish
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Sayt: `http://localhost:3000`
+- Admin: `http://localhost:3000/admin/login`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Repozitoriyni ulang.
+2. Environment o‘zgaruvchilarini (xususan `SUPABASE_SERVICE_ROLE_KEY`) qo‘shing.
+3. Deploy.
 
-## Learn More
+## Texnik eslatmalar
 
-To learn more about Next.js, take a look at the following resources:
+- **Ariza** yuborish uchun `SUPABASE_SERVICE_ROLE_KEY` majburiy — u serverda qoladi, klientga chiqmaydi.
+- **Logo:** `settings.logo_url` ga Supabase Storage’dagi jamoat URL ni yozing; bucket va siyosatlarni Supabase UI dan sozlang.
+- **Telegram:** bot yarating, `TELEGRAM_BOT_TOKEN` va `CHAT_ID` ni to‘ldiring — yangi ariza kelganda xabar yuboriladi.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Loyiha tuzilishi (qisqa)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/app/(marketing)/` — ommaviy sahifalar
+- `src/app/admin/(crm)/` — CRM (layoutda admin tekshiruvi)
+- `src/lib/actions/crm.ts` — server actionlar
+- `src/lib/supabase/` — klientlar (browser, server, service role, anon API)
+- `supabase/migrations/` — SQL migratsiya
