@@ -2,8 +2,11 @@ import Link from "next/link";
 import {
   ArrowRight,
   Briefcase,
+  Bot,
   Cpu,
   GraduationCap,
+  LayoutGrid,
+  Shield,
   Sparkles,
   Users,
   UserCircle,
@@ -11,7 +14,6 @@ import {
   Clock,
   FileText,
   Code2,
-  LayoutGrid,
 } from "lucide-react";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { formatUzs } from "@/lib/format";
@@ -22,6 +24,8 @@ const FEATURED_SLUGS: { slug: string; label: string; Icon: typeof Cpu }[] = [
   { slug: "web-dasturlash", label: "Dasturlash", Icon: Code2 },
   { slug: "microsoft-office", label: "Office", Icon: LayoutGrid },
   { slug: "ai-asoslari", label: "AI", Icon: Sparkles },
+  { slug: "robototexnika", label: "Robototexnika", Icon: Bot },
+  { slug: "kiberxavfsizlik-asoslari", label: "Kiberxavfsizlik", Icon: Shield },
 ];
 
 async function load() {
@@ -117,7 +121,7 @@ export default async function HomePage() {
         <h2 className="text-center text-sm font-semibold uppercase tracking-widest text-[#6C63FF]">
           Mashhur yo‘nalishlar
         </h2>
-        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {FEATURED_SLUGS.map(({ slug, label, Icon }) => {
             const c = courseBySlug[slug];
             const href = c ? `/kurslar/${slug}` : "/ariza";
@@ -232,7 +236,7 @@ export default async function HomePage() {
               Ma&apos;lumotlar bazasiga ulaning — kurslar shu yerda chiqadi.
             </p>
           ) : (
-            courses.slice(0, 4).map((c) => (
+            courses.slice(0, 6).map((c) => (
               <article
                 key={c.id}
                 className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-[#00D1FF]/30"

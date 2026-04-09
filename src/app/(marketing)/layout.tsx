@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { MarketingHeader } from "@/components/marketing/header";
 import { MarketingFooter } from "@/components/marketing/footer";
+import { RotatingBanner } from "@/components/marketing/rotating-banner";
 import { VisitorTracker } from "@/components/visitor-tracker";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 
@@ -47,6 +48,7 @@ export default async function MarketingLayout({
         <VisitorTracker />
       </Suspense>
       <MarketingHeader centerName={s.center_name} logoUrl={s.logo_url} />
+      <RotatingBanner />
       <main className="flex-1">{children}</main>
       <MarketingFooter
         centerName={s.center_name}
