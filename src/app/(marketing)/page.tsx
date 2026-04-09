@@ -16,6 +16,7 @@ import {
   Code2,
 } from "lucide-react";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
 import { formatUzs } from "@/lib/format";
 import type { Course, Package, PublicStats } from "@/lib/types";
 
@@ -45,7 +46,7 @@ async function load() {
         .limit(4),
       supabase.from("public_stats").select("*").limit(1).maybeSingle(),
     ]);
-    const allCourses = (coursesRes.data ?? []) as Course[];
+    const allCourses = mergeMissingCatalogCourses((coursesRes.data ?? []) as Course[]);
     return {
       courses: allCourses.slice(0, 8),
       packages: (packagesRes.data ?? []) as Package[],
@@ -53,7 +54,13 @@ async function load() {
       courseBySlug: Object.fromEntries(allCourses.map((c) => [c.slug, c])) as Record<string, Course>,
     };
   } catch {
-    return { courses: [], packages: [], stats: null, courseBySlug: {} as Record<string, Course> };
+    const fb = mergeMissingCatalogCourses([]);
+    return {
+      courses: fb.slice(0, 8),
+      packages: [],
+      stats: null,
+      courseBySlug: Object.fromEntries(fb.map((c) => [c.slug, c])) as Record<string, Course>,
+    };
   }
 }
 

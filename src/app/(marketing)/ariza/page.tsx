@@ -1,4 +1,5 @@
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
 import { ArizaForm } from "@/components/marketing/ariza-form";
 import type { Course, Package } from "@/lib/types";
 
@@ -29,11 +30,12 @@ export default async function ArizaPage({ searchParams }: Props) {
   try {
     const supabase = createPublicSupabaseClient();
     const [c, p] = await Promise.all([
-      supabase.from("courses").select("name").eq("is_active", true),
+      supabase.from("courses").select("*").eq("is_active", true),
       supabase.from("packages").select("name").eq("is_active", true),
     ]);
+    const merged = mergeMissingCatalogCourses((c.data ?? []) as Course[]);
     const names = [
-      ...((c.data ?? []) as Pick<Course, "name">[]).map((x) => x.name),
+      ...merged.map((x) => x.name),
       ...((p.data ?? []) as Pick<Package, "name">[]).map((x) => x.name),
     ];
     if (names.length) options = [...new Set(names)];

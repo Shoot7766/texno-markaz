@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
 import { formatUzs } from "@/lib/format";
 import type { Course } from "@/lib/types";
 
@@ -17,9 +18,9 @@ export default async function KurslarPage() {
       .select("*")
       .eq("is_active", true)
       .order("sort_order", { ascending: true });
-    courses = (data ?? []) as Course[];
+    courses = mergeMissingCatalogCourses((data ?? []) as Course[]);
   } catch {
-    courses = [];
+    courses = mergeMissingCatalogCourses([]);
   }
 
   return (

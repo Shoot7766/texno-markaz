@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { getCourseFallbackBySlug } from "@/lib/marketing/course-fallbacks";
 import { formatUzs } from "@/lib/format";
 import type { Course } from "@/lib/types";
 
@@ -16,10 +17,13 @@ export async function generateMetadata({ params }: Props) {
       .eq("slug", slug)
       .eq("is_active", true)
       .maybeSingle();
-    if (!data) return { title: "Kurs" };
+    const fb = getCourseFallbackBySlug(slug);
+    const name = data?.name ?? fb?.name;
+    const desc = data?.description ?? fb?.description;
+    if (!name) return { title: "Kurs" };
     return {
-      title: data.name,
-      description: data.description.slice(0, 160),
+      title: name,
+      description: (desc ?? "").slice(0, 160),
     };
   } catch {
     return { title: "Kurs" };
@@ -29,16 +33,15 @@ export async function generateMetadata({ params }: Props) {
 export default async function KursDetailPage({ params }: Props) {
   const { slug } = await params;
   const supabase = createPublicSupabaseClient();
-  const { data: row, error } = await supabase
+  const { data: row } = await supabase
     .from("courses")
     .select("*")
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
 
-  if (error || !row) notFound();
-
-  const c = row as Course;
+  const c = (row as Course | null) ?? getCourseFallbackBySlug(slug);
+  if (!c) notFound();
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
