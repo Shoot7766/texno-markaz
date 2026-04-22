@@ -180,6 +180,101 @@ export async function updateStudent(
   revalidatePath("/admin/oquvchilar");
 }
 
+export async function createManualStudent(payload: {
+  first_name: string;
+  last_name: string;
+  phone: string;
+  parent_phone: string;
+  course_id: string;
+  group_id: string | null;
+  start_date: string;
+  end_date: string | null;
+  total_amount: number;
+  discount: number;
+  comment: string;
+}) {
+  const { supabase, user } = await requireAdmin();
+
+  const { data: student, error } = await supabase
+    .from("students")
+    .insert({
+      first_name: payload.first_name,
+      last_name: payload.last_name,
+      phone: payload.phone,
+      parent_phone: payload.parent_phone,
+      course_id: payload.course_id,
+      group_id: payload.group_id,
+      start_date: payload.start_date,
+      end_date: payload.end_date,
+      status: "active",
+      total_amount: payload.total_amount,
+      paid_amount: 0,
+      discount: payload.discount,
+      payment_status: "qarz",
+      comment: payload.comment,
+    })
+    .select("id")
+    .single();
+
+  if (error || !student) throw new Error(error?.message ?? "O‘quvchi qo‘shilmadi");
+
+  await supabase.from("activity_logs").insert({
+    actor_id: user.id,
+    action: "student_create_manual",
+    entity_type: "student",
+    entity_id: student.id,
+    details: {
+      course_id: payload.course_id,
+      group_id: payload.group_id,
+    },
+  });
+
+  revalidatePath("/admin/oquvchilar");
+  revalidatePath("/admin");
+}
+
+export async function createGroup(payload: {
+  name: string;
+  course_id: string | null;
+  teacher: string;
+  schedule: string;
+  max_students: number;
+  start_date: string | null;
+  end_date: string | null;
+}) {
+  const { supabase, user } = await requireAdmin();
+
+  const { data: group, error } = await supabase
+    .from("groups")
+    .insert({
+      name: payload.name,
+      course_id: payload.course_id,
+      teacher: payload.teacher,
+      schedule: payload.schedule,
+      max_students: payload.max_students,
+      start_date: payload.start_date,
+      end_date: payload.end_date,
+      is_active: true,
+    })
+    .select("id")
+    .single();
+
+  if (error || !group) throw new Error(error?.message ?? "Guruh yaratilmadi");
+
+  await supabase.from("activity_logs").insert({
+    actor_id: user.id,
+    action: "group_create",
+    entity_type: "group",
+    entity_id: group.id,
+    details: {
+      name: payload.name,
+      schedule: payload.schedule,
+    },
+  });
+
+  revalidatePath("/admin/guruhlar");
+}
+
 export async function saveCourse(id: string, patch: Record<string, unknown>) {
   const { supabase, user } = await requireAdmin();
   await supabase.from("courses").update(patch).eq("id", id);

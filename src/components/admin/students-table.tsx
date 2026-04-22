@@ -2,14 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Course, Student, StudentStatus } from "@/lib/types";
-import { updateStudent } from "@/lib/actions/crm";
+import type { Course, Group, Student, StudentStatus } from "@/lib/types";
+import { createManualStudent, updateStudent } from "@/lib/actions/crm";
 import { formatDate, formatUzs } from "@/lib/format";
 import { Loader2, Search } from "lucide-react";
 
 type Props = {
   initialStudents: Student[];
   courses: Pick<Course, "id" | "name">[];
+  groups: Pick<Group, "id" | "name" | "course_id">[];
 };
 
 const statuses: { value: StudentStatus; label: string }[] = [
@@ -18,10 +19,24 @@ const statuses: { value: StudentStatus; label: string }[] = [
   { value: "paused", label: "Pauza" },
 ];
 
-export function StudentsTable({ initialStudents, courses }: Props) {
+export function StudentsTable({ initialStudents, courses, groups }: Props) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    phone: "",
+    parent_phone: "",
+    course_id: courses[0]?.id ?? "",
+    group_id: "",
+    start_date: new Date().toISOString().slice(0, 10),
+    end_date: "",
+    total_amount: 0,
+    discount: 0,
+    comment: "",
+  });
 
   const filtered = useMemo(() => {
     if (!q.trim()) return initialStudents;
@@ -41,10 +56,142 @@ export function StudentsTable({ initialStudents, courses }: Props) {
     }
   }
 
+  async function onCreateStudent() {
+    if (!form.first_name.trim() || !form.last_name.trim() || !form.phone.trim() || !form.course_id) {
+      return;
+    }
+    setSaving(true);
+    try {
+      await createManualStudent({
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        phone: form.phone.trim(),
+        parent_phone: form.parent_phone.trim(),
+        course_id: form.course_id,
+        group_id: form.group_id || null,
+        start_date: form.start_date,
+        end_date: form.end_date || null,
+        total_amount: Number(form.total_amount),
+        discount: Number(form.discount),
+        comment: form.comment.trim(),
+      });
+      setForm((prev) => ({
+        ...prev,
+        first_name: "",
+        last_name: "",
+        phone: "",
+        parent_phone: "",
+        group_id: "",
+        end_date: "",
+        total_amount: 0,
+        discount: 0,
+        comment: "",
+      }));
+      router.refresh();
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const courseName = (id: string) => courses.find((c) => c.id === id)?.name ?? "—";
 
   return (
     <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-slate-900">Qo‘lda o‘quvchi qo‘shish</h3>
+        <div className="mt-3 grid gap-3 text-sm md:grid-cols-2 lg:grid-cols-4">
+          <input
+            placeholder="Ism"
+            value={form.first_name}
+            onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <input
+            placeholder="Familiya"
+            value={form.last_name}
+            onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <input
+            placeholder="Telefon"
+            value={form.phone}
+            onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <input
+            placeholder="Ota-ona telefoni"
+            value={form.parent_phone}
+            onChange={(e) => setForm((p) => ({ ...p, parent_phone: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <select
+            value={form.course_id}
+            onChange={(e) => setForm((p) => ({ ...p, course_id: e.target.value, group_id: "" }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          >
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={form.group_id}
+            onChange={(e) => setForm((p) => ({ ...p, group_id: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          >
+            <option value="">Guruhsiz</option>
+            {groups
+              .filter((g) => g.course_id === form.course_id)
+              .map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+          </select>
+          <input
+            type="date"
+            value={form.start_date}
+            onChange={(e) => setForm((p) => ({ ...p, start_date: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <input
+            type="date"
+            value={form.end_date}
+            onChange={(e) => setForm((p) => ({ ...p, end_date: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <input
+            type="number"
+            placeholder="Umumiy summa"
+            value={form.total_amount}
+            onChange={(e) => setForm((p) => ({ ...p, total_amount: Number(e.target.value) }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <input
+            type="number"
+            placeholder="Chegirma"
+            value={form.discount}
+            onChange={(e) => setForm((p) => ({ ...p, discount: Number(e.target.value) }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <input
+            placeholder="Izoh"
+            value={form.comment}
+            onChange={(e) => setForm((p) => ({ ...p, comment: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2 lg:col-span-2"
+          />
+          <button
+            type="button"
+            onClick={onCreateStudent}
+            disabled={saving}
+            className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          >
+            {saving ? "Saqlanmoqda..." : "O‘quvchini qo‘shish"}
+          </button>
+        </div>
+      </div>
+
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input

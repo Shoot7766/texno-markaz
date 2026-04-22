@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { StudentsTable } from "@/components/admin/students-table";
-import type { Course, Student } from "@/lib/types";
+import type { Course, Group, Student } from "@/lib/types";
 
 export default async function OquvchilarPage() {
   const supabase = await createClient();
@@ -9,6 +9,7 @@ export default async function OquvchilarPage() {
     .select("*")
     .order("created_at", { ascending: false });
   const { data: courses } = await supabase.from("courses").select("id, name");
+  const { data: groups } = await supabase.from("groups").select("id, name, course_id");
 
   return (
     <div className="space-y-6">
@@ -19,6 +20,7 @@ export default async function OquvchilarPage() {
       <StudentsTable
         initialStudents={(students ?? []) as Student[]}
         courses={(courses ?? []) as Pick<Course, "id" | "name">[]}
+        groups={(groups ?? []) as Pick<Group, "id" | "name" | "course_id">[]}
       />
     </div>
   );
