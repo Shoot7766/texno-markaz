@@ -76,6 +76,20 @@ async function load() {
 
 export default async function HomePage() {
   const { courses, packages, stats, groups, courseBySlug } = await load();
+  const weekDays = ["Du", "Se", "Chor", "Pay", "Juma", "Shan", "Yak"];
+  const groupsByDay: Record<string, typeof groups> = Object.fromEntries(
+    weekDays.map((d) => [d, [] as typeof groups])
+  );
+  groups.forEach((g) => {
+    const parsedDays =
+      (g.schedule_days ?? []).length > 0
+        ? g.schedule_days
+        : weekDays.filter((d) => (g.schedule ?? "").toLowerCase().includes(d.toLowerCase()));
+    const days = parsedDays.length > 0 ? parsedDays : ["Du"];
+    days.forEach((d) => {
+      if (groupsByDay[d]) groupsByDay[d].push(g);
+    });
+  });
 
   return (
     <div className="overflow-hidden">
@@ -290,27 +304,38 @@ export default async function HomePage() {
             To‘liq jadval
           </Link>
         </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.slice(0, 9).map((g) => {
-            const course = courses.find((c) => c.id === g.course_id);
-            const scheduleLine = (g.schedule_days ?? []).length
-              ? `${(g.schedule_days ?? []).join(", ")}${g.schedule_time ? ` · ${g.schedule_time}` : ""}`
-              : (g.schedule ?? "Jadval kiritilmagan");
-            return (
-              <Link
-                key={g.id}
-                href={`/dars-jadvali/${g.id}`}
-                className="block rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-[#00D1FF]/30"
-              >
-                <p className="text-sm font-semibold text-white">{g.name}</p>
-                <p className="mt-1 text-xs text-slate-500">{course?.name ?? "Kurs belgilanmagan"}</p>
-                <p className="mt-3 text-sm text-emerald-300">{scheduleLine}</p>
-              </Link>
-            );
-          })}
-          {groups.length === 0 && (
-            <p className="text-sm text-slate-500">Hozircha dars jadvali kiritilmagan.</p>
-          )}
+        <div className="mt-6 grid gap-3 lg:grid-cols-7">
+          {weekDays.map((day) => (
+            <section key={day} className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+              <h3 className="rounded-lg bg-white/5 px-2 py-1 text-center text-xs font-semibold uppercase text-[#00D1FF]">
+                {day}
+              </h3>
+              <div className="mt-3 space-y-2">
+                {(groupsByDay[day] ?? []).map((g) => {
+                  const course = courses.find((c) => c.id === g.course_id);
+                  const scheduleLine = g.schedule_time || g.schedule || "Vaqt kiritilmagan";
+                  return (
+                    <Link
+                      key={`${day}-${g.id}`}
+                      href={`/dars-jadvali/${g.id}`}
+                      className="block rounded-lg border border-white/10 bg-[#0f1528] p-2 transition hover:border-[#00D1FF]/35"
+                    >
+                      <p className="text-xs font-semibold text-white">{g.name}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-500">
+                        {course?.name ?? "Yo‘nalish belgilanmagan"}
+                      </p>
+                      <p className="mt-1 text-[11px] text-emerald-300">{scheduleLine}</p>
+                    </Link>
+                  );
+                })}
+                {(groupsByDay[day] ?? []).length === 0 && (
+                  <p className="rounded-lg border border-dashed border-white/10 px-2 py-4 text-center text-xs text-slate-500">
+                    Dars yo‘q
+                  </p>
+                )}
+              </div>
+            </section>
+          ))}
         </div>
       </section>
 
