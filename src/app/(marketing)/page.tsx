@@ -298,16 +298,19 @@ export default async function HomePage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white">Dars jadvali</h2>
-            <p className="mt-1 text-sm text-slate-500">Faol guruhlar bo‘yicha haftalik vaqtlar</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Guruhlar jadvalini kunlar bo‘yicha ko‘rish (faqat ko‘rish rejimi).
+            </p>
           </div>
           <Link href="/dars-jadvali" className="text-sm font-medium text-[#00D1FF] transition hover:text-[#6C63FF]">
             To‘liq jadval
           </Link>
         </div>
-        <div className="mt-6 grid gap-3 lg:grid-cols-7">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="grid gap-3 lg:grid-cols-7">
           {weekDays.map((day) => (
-            <section key={day} className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-              <h3 className="rounded-lg bg-white/5 px-2 py-1 text-center text-xs font-semibold uppercase text-[#00D1FF]">
+            <section key={day} className="rounded-xl border border-white/10 bg-[#0f1528]/70 p-2.5">
+              <h3 className="rounded-md bg-white/5 px-2 py-1 text-center text-[11px] font-semibold uppercase text-[#00D1FF]">
                 {day}
               </h3>
               <div className="mt-3 space-y-2">
@@ -315,17 +318,16 @@ export default async function HomePage() {
                   const course = courses.find((c) => c.id === g.course_id);
                   const scheduleLine = g.schedule_time || g.schedule || "Vaqt kiritilmagan";
                   return (
-                    <Link
+                    <div
                       key={`${day}-${g.id}`}
-                      href={`/dars-jadvali/${g.id}`}
-                      className="block rounded-lg border border-white/10 bg-[#0f1528] p-2 transition hover:border-[#00D1FF]/35"
+                      className="rounded-lg border border-white/10 bg-[#111a30] p-2"
                     >
                       <p className="text-xs font-semibold text-white">{g.name}</p>
                       <p className="mt-0.5 text-[11px] text-slate-500">
                         {course?.name ?? "Yo‘nalish belgilanmagan"}
                       </p>
                       <p className="mt-1 text-[11px] text-emerald-300">{scheduleLine}</p>
-                    </Link>
+                    </div>
                   );
                 })}
                 {(groupsByDay[day] ?? []).length === 0 && (
@@ -336,6 +338,7 @@ export default async function HomePage() {
               </div>
             </section>
           ))}
+          </div>
         </div>
       </section>
 
