@@ -132,7 +132,8 @@ export function GroupsManager({ groups, courses }: Props) {
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-slate-900">Yangi guruh va dars jadvali</h3>
         <p className="mt-1 text-xs text-slate-500">
-          Misol: Du/Chor/Juma 10:00-12:00 yoki Se/Payshanba 15:00-17:00
+          Misol: Du/Chor/Juma 10:00-12:00. Kunlarni tanlamasangiz ham bo‘ladi — jadval matnini yozib, har hafta
+          admin panelda yangilashingiz mumkin; saytda guruh «Kunlar belgilanmagan» blokida chiqadi.
         </p>
         <div className="mt-3 grid gap-3 text-sm md:grid-cols-2 lg:grid-cols-4">
           <input

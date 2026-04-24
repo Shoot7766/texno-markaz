@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
+import { partitionGroupsByWeekDays, WEEKDAY_SHORT_UZ } from "@/lib/marketing/week-schedule";
 import { formatUzs } from "@/lib/format";
 import type { Course, Group, Package, PublicStats } from "@/lib/types";
 
@@ -76,20 +77,7 @@ async function load() {
 
 export default async function HomePage() {
   const { courses, packages, stats, groups, courseBySlug } = await load();
-  const weekDays = ["Du", "Se", "Chor", "Pay", "Juma", "Shan", "Yak"];
-  const groupsByDay: Record<string, typeof groups> = Object.fromEntries(
-    weekDays.map((d) => [d, [] as typeof groups])
-  );
-  groups.forEach((g) => {
-    const parsedDays =
-      (g.schedule_days ?? []).length > 0
-        ? g.schedule_days
-        : weekDays.filter((d) => (g.schedule ?? "").toLowerCase().includes(d.toLowerCase()));
-    const days = parsedDays.length > 0 ? parsedDays : ["Du"];
-    days.forEach((d) => {
-      if (groupsByDay[d]) groupsByDay[d].push(g);
-    });
-  });
+  const { byDay: groupsByDay, unscheduled: groupsWithoutDays } = partitionGroupsByWeekDays(groups);
 
   return (
     <div className="overflow-hidden">
@@ -308,7 +296,7 @@ export default async function HomePage() {
         </div>
         <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
           <div className="grid gap-3 lg:grid-cols-7">
-          {weekDays.map((day) => (
+          {WEEKDAY_SHORT_UZ.map((day) => (
             <section key={day} className="rounded-xl border border-white/10 bg-[#0f1528]/70 p-2.5">
               <h3 className="rounded-md bg-white/5 px-2 py-1 text-center text-[11px] font-semibold uppercase text-[#00D1FF]">
                 {day}
@@ -340,6 +328,33 @@ export default async function HomePage() {
           ))}
           </div>
         </div>
+
+        {groupsWithoutDays.length > 0 && (
+          <div className="mt-6 rounded-2xl border border-amber-500/25 bg-amber-500/[0.06] p-4">
+            <h3 className="text-sm font-semibold text-amber-200/90">Kunlar belgilanmagan</h3>
+            <p className="mt-1 text-xs text-slate-400">
+              Bu guruhlar hafta ustunlarida emas — jadvalni matn yoki admin panel orqali har hafta moslashtirasiz.
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {groupsWithoutDays.map((g) => {
+                const course = courses.find((c) => c.id === g.course_id);
+                const scheduleLine = g.schedule_time || g.schedule || "Vaqt kiritilmagan";
+                return (
+                  <div
+                    key={g.id}
+                    className="rounded-lg border border-white/10 bg-[#111a30] p-2"
+                  >
+                    <p className="text-xs font-semibold text-white">{g.name}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      {course?.name ?? "Yo‘nalish belgilanmagan"}
+                    </p>
+                    <p className="mt-1 text-[11px] text-emerald-300">{scheduleLine}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="border-t border-white/10 bg-[#080d18]/50 py-16">

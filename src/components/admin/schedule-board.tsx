@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateGroup } from "@/lib/actions/crm";
+import { partitionGroupsByWeekDays, WEEKDAY_SHORT_UZ } from "@/lib/marketing/week-schedule";
 import type { Course, Group } from "@/lib/types";
 
 type Props = {
@@ -10,8 +11,6 @@ type Props = {
   courses: Pick<Course, "id" | "name">[];
   studentsByGroup: Record<string, number>;
 };
-
-const weekDays = ["Du", "Se", "Chor", "Pay", "Juma", "Shan", "Yak"];
 
 export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
   const router = useRouter();
@@ -29,20 +28,10 @@ export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
     is_active: true,
   });
 
-  const calendar = useMemo(() => {
-    const byDay: Record<string, Group[]> = Object.fromEntries(weekDays.map((d) => [d, []]));
-    groups.forEach((g) => {
-      const days = g.schedule_days?.length ? g.schedule_days : weekDays.filter((d) => (g.schedule ?? "").includes(d));
-      if (!days.length) {
-        byDay.Du.push(g);
-        return;
-      }
-      days.forEach((d) => {
-        if (byDay[d]) byDay[d].push(g);
-      });
-    });
-    return byDay;
-  }, [groups]);
+  const { byDay: calendar, unscheduled: calendarUnscheduled } = useMemo(
+    () => partitionGroupsByWeekDays(groups),
+    [groups]
+  );
 
   function startEdit(group: Group) {
     setEditingId(group.id);
@@ -85,7 +74,7 @@ export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-7">
-        {weekDays.map((day) => (
+        {WEEKDAY_SHORT_UZ.map((day) => (
           <div key={day} className="rounded-lg border border-slate-200 bg-slate-50 p-2">
             <p className="text-xs font-semibold uppercase text-slate-600">{day}</p>
             <div className="mt-2 space-y-2">
@@ -108,6 +97,30 @@ export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
           </div>
         ))}
       </div>
+
+      {calendarUnscheduled.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase text-amber-900">Kunlar belgilanmagan</p>
+          <p className="mt-1 text-xs text-amber-800/90">
+            Hafta kunlarini tanlamasangiz, guruh shu yerda turadi — jadval matnini yoki kunlarni keyinroq
+            yangilashingiz mumkin.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {calendarUnscheduled.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => startEdit(g)}
+                className="rounded border border-amber-200 bg-white px-3 py-2 text-left hover:border-amber-400"
+              >
+                <p className="text-xs font-semibold text-slate-800">{g.name}</p>
+                <p className="text-xs text-slate-500">{g.schedule_time || g.schedule || "Vaqt kiritilmagan"}</p>
+                <p className="text-[11px] text-slate-400">O‘quvchi: {studentsByGroup[g.id] ?? 0}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {editingId && (
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -167,7 +180,7 @@ export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
             </label>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {weekDays.map((day) => {
+            {WEEKDAY_SHORT_UZ.map((day) => {
               const active = form.schedule_days.includes(day);
               return (
                 <button
