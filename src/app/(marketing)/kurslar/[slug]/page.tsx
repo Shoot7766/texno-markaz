@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { getCourseFallbackBySlug } from "@/lib/marketing/course-fallbacks";
 import { formatUzs } from "@/lib/format";
-import type { Course } from "@/lib/types";
+import type { Course, Group } from "@/lib/types";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -42,6 +42,13 @@ export default async function KursDetailPage({ params }: Props) {
 
   const c = (row as Course | null) ?? getCourseFallbackBySlug(slug);
   if (!c) notFound();
+  const { data: groupRows } = await supabase
+    .from("groups")
+    .select("id, name, schedule, teacher")
+    .eq("course_id", c.id)
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+  const groups = (groupRows ?? []) as Pick<Group, "id" | "name" | "schedule" | "teacher">[];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
@@ -92,6 +99,22 @@ export default async function KursDetailPage({ params }: Props) {
                     <li key={f}>{f}</li>
                   ))}
                 </ul>
+              </dd>
+            </div>
+          )}
+          {groups.length > 0 && (
+            <div className="sm:col-span-2">
+              <dt className="text-sm text-slate-500">Dars jadvali</dt>
+              <dd className="mt-2 space-y-2 text-slate-300">
+                {groups.map((g) => (
+                  <div key={g.id} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+                    <div className="text-sm font-medium text-white">{g.name}</div>
+                    <div className="text-xs text-emerald-300">{g.schedule || "Jadval kiritilmagan"}</div>
+                    <div className="text-xs text-slate-400">
+                      {g.teacher ? `O‘qituvchi: ${g.teacher}` : "O‘qituvchi belgilanmagan"}
+                    </div>
+                  </div>
+                ))}
               </dd>
             </div>
           )}

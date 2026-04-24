@@ -82,6 +82,7 @@ export interface Student {
   paid_amount: number;
   discount: number;
   payment_status: PaymentStatus;
+  payment_due_date: string | null;
   comment: string | null;
   created_at: string;
 }

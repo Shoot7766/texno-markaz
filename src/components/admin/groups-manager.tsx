@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createGroup } from "@/lib/actions/crm";
+import { createGroup, updateGroup } from "@/lib/actions/crm";
 import { formatDate } from "@/lib/format";
 import type { Course, Group } from "@/lib/types";
 
@@ -14,6 +14,9 @@ type Props = {
 export function GroupsManager({ groups, courses }: Props) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [savingRowId, setSavingRowId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     course_id: "",
@@ -26,9 +29,36 @@ export function GroupsManager({ groups, courses }: Props) {
 
   const courseName = (id: string | null) =>
     id ? (courses.find((c) => c.id === id)?.name ?? "—") : "—";
+  const editingGroup = groups.find((g) => g.id === editingId);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    course_id: "",
+    teacher: "",
+    schedule: "",
+    max_students: 20,
+    start_date: "",
+    end_date: "",
+    is_active: true,
+  });
+
+  function startEdit(g: Group) {
+    setEditingId(g.id);
+    setError(null);
+    setEditForm({
+      name: g.name,
+      course_id: g.course_id ?? "",
+      teacher: g.teacher ?? "",
+      schedule: g.schedule ?? "",
+      max_students: g.max_students,
+      start_date: g.start_date ?? "",
+      end_date: g.end_date ?? "",
+      is_active: g.is_active,
+    });
+  }
 
   async function onCreateGroup() {
     if (!form.name.trim()) return;
+    setError(null);
     setSaving(true);
     try {
       await createGroup({
@@ -50,8 +80,34 @@ export function GroupsManager({ groups, courses }: Props) {
         end_date: "",
       });
       router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Guruh yaratilmadi.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onSaveEdit() {
+    if (!editingId || !editingGroup) return;
+    setSavingRowId(editingId);
+    setError(null);
+    try {
+      await updateGroup(editingId, {
+        name: editForm.name.trim(),
+        course_id: editForm.course_id || null,
+        teacher: editForm.teacher.trim(),
+        schedule: editForm.schedule.trim(),
+        max_students: Number(editForm.max_students) || 20,
+        start_date: editForm.start_date || null,
+        end_date: editForm.end_date || null,
+        is_active: editForm.is_active,
+      });
+      setEditingId(null);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Guruh saqlanmadi.");
+    } finally {
+      setSavingRowId(null);
     }
   }
 
@@ -122,6 +178,7 @@ export function GroupsManager({ groups, courses }: Props) {
             {saving ? "Saqlanmoqda..." : "Guruh yaratish"}
           </button>
         </div>
+        {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -134,24 +191,129 @@ export function GroupsManager({ groups, courses }: Props) {
               <th className="px-4 py-3">Jadval</th>
               <th className="px-4 py-3">Muddat</th>
               <th className="px-4 py-3">Holat</th>
+              <th className="px-4 py-3">Amal</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {groups.map((g) => (
               <tr key={g.id}>
-                <td className="px-4 py-3 font-medium text-slate-900">{g.name}</td>
-                <td className="px-4 py-3">{courseName(g.course_id)}</td>
-                <td className="px-4 py-3 text-slate-600">{g.teacher || "—"}</td>
-                <td className="px-4 py-3 text-slate-600">{g.schedule || "—"}</td>
-                <td className="px-4 py-3 text-xs text-slate-500">
-                  {g.start_date ? formatDate(g.start_date) : "—"}
-                  {g.end_date ? ` — ${formatDate(g.end_date)}` : ""}
+                <td className="px-4 py-3 font-medium text-slate-900">
+                  {editingId === g.id ? (
+                    <input
+                      value={editForm.name}
+                      onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+                      className="w-44 rounded border border-slate-200 px-2 py-1 text-sm"
+                    />
+                  ) : (
+                    g.name
+                  )}
                 </td>
                 <td className="px-4 py-3">
-                  {g.is_active ? (
+                  {editingId === g.id ? (
+                    <select
+                      value={editForm.course_id}
+                      onChange={(e) => setEditForm((p) => ({ ...p, course_id: e.target.value }))}
+                      className="w-44 rounded border border-slate-200 px-2 py-1 text-sm"
+                    >
+                      <option value="">Kurs tanlanmagan</option>
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    courseName(g.course_id)
+                  )}
+                </td>
+                <td className="px-4 py-3 text-slate-600">
+                  {editingId === g.id ? (
+                    <input
+                      value={editForm.teacher}
+                      onChange={(e) => setEditForm((p) => ({ ...p, teacher: e.target.value }))}
+                      className="w-40 rounded border border-slate-200 px-2 py-1 text-sm"
+                    />
+                  ) : (
+                    g.teacher || "—"
+                  )}
+                </td>
+                <td className="px-4 py-3 text-slate-600">
+                  {editingId === g.id ? (
+                    <input
+                      value={editForm.schedule}
+                      onChange={(e) => setEditForm((p) => ({ ...p, schedule: e.target.value }))}
+                      className="w-52 rounded border border-slate-200 px-2 py-1 text-sm"
+                    />
+                  ) : (
+                    g.schedule || "—"
+                  )}
+                </td>
+                <td className="px-4 py-3 text-xs text-slate-500">
+                  {editingId === g.id ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={editForm.start_date}
+                        onChange={(e) => setEditForm((p) => ({ ...p, start_date: e.target.value }))}
+                        className="rounded border border-slate-200 px-2 py-1 text-xs"
+                      />
+                      <input
+                        type="date"
+                        value={editForm.end_date}
+                        onChange={(e) => setEditForm((p) => ({ ...p, end_date: e.target.value }))}
+                        className="rounded border border-slate-200 px-2 py-1 text-xs"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      {g.start_date ? formatDate(g.start_date) : "—"}
+                      {g.end_date ? ` — ${formatDate(g.end_date)}` : ""}
+                    </>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {editingId === g.id ? (
+                    <label className="inline-flex items-center gap-2 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={editForm.is_active}
+                        onChange={(e) => setEditForm((p) => ({ ...p, is_active: e.target.checked }))}
+                      />
+                      Faol
+                    </label>
+                  ) : g.is_active ? (
                     <span className="text-emerald-700">Faol</span>
                   ) : (
                     <span className="text-slate-400">Nofaol</span>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {editingId === g.id ? (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={onSaveEdit}
+                        disabled={savingRowId === g.id}
+                        className="rounded bg-blue-600 px-2 py-1 text-xs text-white disabled:opacity-60"
+                      >
+                        Saqlash
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className="rounded border border-slate-200 px-2 py-1 text-xs"
+                      >
+                        Bekor
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => startEdit(g)}
+                      className="rounded border border-slate-200 px-2 py-1 text-xs hover:bg-slate-50"
+                    >
+                      Tahrirlash
+                    </button>
                   )}
                 </td>
               </tr>

@@ -9,7 +9,9 @@ export default async function TolovPage() {
     .select("*")
     .order("paid_at", { ascending: false })
     .limit(100);
-  const { data: students } = await supabase.from("students").select("id, first_name, last_name");
+  const { data: students } = await supabase
+    .from("students")
+    .select("id, first_name, last_name, payment_due_date, payment_status, total_amount, paid_amount, discount");
 
   return (
     <div className="space-y-6">
@@ -19,7 +21,19 @@ export default async function TolovPage() {
       </div>
       <PaymentsPanel
         payments={(payments ?? []) as Payment[]}
-        students={(students ?? []) as Pick<Student, "id" | "first_name" | "last_name">[]}
+        students={
+          (students ?? []) as Pick<
+            Student,
+            | "id"
+            | "first_name"
+            | "last_name"
+            | "payment_due_date"
+            | "payment_status"
+            | "total_amount"
+            | "paid_amount"
+            | "discount"
+          >[]
+        }
       />
     </div>
   );

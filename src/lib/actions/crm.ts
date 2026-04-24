@@ -178,6 +178,7 @@ export async function updateStudent(
     details: patch,
   });
   revalidatePath("/admin/oquvchilar");
+  revalidatePath("/admin/tollov");
 }
 
 export async function createManualStudent(payload: {
@@ -191,6 +192,7 @@ export async function createManualStudent(payload: {
   end_date: string | null;
   total_amount: number;
   discount: number;
+  payment_due_date: string | null;
   comment: string;
 }) {
   const { supabase, user } = await requireAdmin();
@@ -211,6 +213,7 @@ export async function createManualStudent(payload: {
       paid_amount: 0,
       discount: payload.discount,
       payment_status: "qarz",
+      payment_due_date: payload.payment_due_date,
       comment: payload.comment,
     })
     .select("id")
@@ -273,6 +276,37 @@ export async function createGroup(payload: {
   });
 
   revalidatePath("/admin/guruhlar");
+  revalidatePath("/admin/dars-jadvali");
+}
+
+export async function updateGroup(
+  id: string,
+  patch: {
+    name?: string;
+    course_id?: string | null;
+    teacher?: string;
+    schedule?: string;
+    max_students?: number;
+    start_date?: string | null;
+    end_date?: string | null;
+    is_active?: boolean;
+  }
+) {
+  const { supabase, user } = await requireAdmin();
+  const { error } = await supabase.from("groups").update(patch).eq("id", id);
+  if (error) throw new Error(error.message ?? "Guruhni tahrirlab bo‘lmadi");
+
+  await supabase.from("activity_logs").insert({
+    actor_id: user.id,
+    action: "group_update",
+    entity_type: "group",
+    entity_id: id,
+    details: patch,
+  });
+
+  revalidatePath("/admin/guruhlar");
+  revalidatePath("/admin/dars-jadvali");
+  revalidatePath("/kurslar");
 }
 
 export async function saveCourse(id: string, patch: Record<string, unknown>) {

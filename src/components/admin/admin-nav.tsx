@@ -6,6 +6,7 @@ const links = [
   { href: "/admin/arizalar", label: "Arizalar" },
   { href: "/admin/oquvchilar", label: "O‘quvchilar" },
   { href: "/admin/guruhlar", label: "Guruhlar" },
+  { href: "/admin/dars-jadvali", label: "Dars jadvali" },
   { href: "/admin/davomat", label: "Davomat" },
   { href: "/admin/tollov", label: "To‘lov" },
   { href: "/admin/kurslar", label: "Kurslar" },

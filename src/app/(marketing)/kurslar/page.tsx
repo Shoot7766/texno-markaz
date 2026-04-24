@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
 import { formatUzs } from "@/lib/format";
-import type { Course } from "@/lib/types";
+import type { Course, Group } from "@/lib/types";
 
 export const metadata = {
   title: "Kurslar",
@@ -11,17 +11,25 @@ export const metadata = {
 
 export default async function KurslarPage() {
   let courses: Course[] = [];
+  let groups: Pick<Group, "course_id" | "schedule" | "is_active">[] = [];
   try {
     const supabase = createPublicSupabaseClient();
-    const { data } = await supabase
-      .from("courses")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true });
-    courses = mergeMissingCatalogCourses((data ?? []) as Course[]);
+    const [{ data: courseData }, { data: groupData }] = await Promise.all([
+      supabase
+        .from("courses")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true }),
+      supabase.from("groups").select("course_id, schedule, is_active").eq("is_active", true),
+    ]);
+    courses = mergeMissingCatalogCourses((courseData ?? []) as Course[]);
+    groups = (groupData ?? []) as Pick<Group, "course_id" | "schedule" | "is_active">[];
   } catch {
     courses = mergeMissingCatalogCourses([]);
   }
+  const scheduleByCourseId = new Map(
+    groups.filter((g) => g.course_id && g.schedule).map((g) => [g.course_id as string, g.schedule as string])
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
@@ -36,6 +44,11 @@ export default async function KurslarPage() {
             className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 transition hover:border-[#00D1FF]/25"
             style={{ borderLeftWidth: 4, borderLeftColor: c.color ?? "#00D1FF" }}
           >
+            {scheduleByCourseId.get(c.id) && (
+              <p className="mb-2 text-xs font-medium text-emerald-300">
+                Dars kunlari: {scheduleByCourseId.get(c.id)}
+              </p>
+            )}
             <h2 className="text-xl font-semibold text-white">{c.name}</h2>
             <p className="mt-3 text-slate-400">{c.description}</p>
             <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
