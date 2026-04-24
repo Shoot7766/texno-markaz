@@ -8,7 +8,7 @@ export default async function OquvchilarPage() {
     .from("students")
     .select("*")
     .order("created_at", { ascending: false });
-  const { data: courses } = await supabase.from("courses").select("id, name");
+  const { data: courses } = await supabase.from("courses").select("id, name, price");
   const { data: groups } = await supabase.from("groups").select("id, name, course_id");
 
   return (
@@ -19,7 +19,7 @@ export default async function OquvchilarPage() {
       </div>
       <StudentsTable
         initialStudents={(students ?? []) as Student[]}
-        courses={(courses ?? []) as Pick<Course, "id" | "name">[]}
+        courses={(courses ?? []) as Pick<Course, "id" | "name" | "price">[]}
         groups={(groups ?? []) as Pick<Group, "id" | "name" | "course_id">[]}
       />
     </div>

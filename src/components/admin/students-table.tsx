@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Course, Group, Student, StudentStatus } from "@/lib/types";
 import { createManualStudent, updateStudent } from "@/lib/actions/crm";
@@ -9,9 +9,18 @@ import { Loader2, Search } from "lucide-react";
 
 type Props = {
   initialStudents: Student[];
-  courses: Pick<Course, "id" | "name">[];
+  courses: Pick<Course, "id" | "name" | "price">[];
   groups: Pick<Group, "id" | "name" | "course_id">[];
 };
+
+function FormField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-slate-600">{label}</span>
+      {children}
+    </div>
+  );
+}
 
 const statuses: { value: StudentStatus; label: string }[] = [
   { value: "active", label: "Faol" },
@@ -37,11 +46,9 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
     course_id: courses[0]?.id ?? "",
     group_id: "",
     start_date: new Date().toISOString().slice(0, 10),
-    end_date: "",
-    total_amount: 0,
+    total_amount: Number(courses[0]?.price ?? 0),
     discount: 0,
     payment_due_date: "",
-    first_lesson_date: "",
     lesson_time: "",
     comment: "",
   });
@@ -53,11 +60,9 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
     course_id: "",
     group_id: "",
     start_date: "",
-    end_date: "",
     total_amount: 0,
     discount: 0,
     payment_due_date: "",
-    first_lesson_date: "",
     lesson_time: "",
     comment: "",
     status: "active" as StudentStatus,
@@ -102,11 +107,9 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         course_id: form.course_id,
         group_id: form.group_id || null,
         start_date: form.start_date,
-        end_date: form.end_date || null,
         total_amount: Number(form.total_amount),
         discount: Number(form.discount),
         payment_due_date: form.payment_due_date || null,
-        first_lesson_date: form.first_lesson_date || null,
         lesson_time: form.lesson_time.trim(),
         comment: form.comment.trim(),
       });
@@ -117,11 +120,9 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         phone: "",
         parent_phone: "",
         group_id: "",
-        end_date: "",
-        total_amount: 0,
+        total_amount: Number(courses[0]?.price ?? 0),
         discount: 0,
         payment_due_date: "",
-        first_lesson_date: "",
         lesson_time: "",
         comment: "",
       }));
@@ -135,6 +136,7 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
   }
 
   const courseName = (id: string) => courses.find((c) => c.id === id)?.name ?? "—";
+  const coursePrice = (courseId: string) => Number(courses.find((c) => c.id === courseId)?.price ?? 0);
 
   function openEdit(st: Student) {
     setEditError(null);
@@ -147,11 +149,9 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
       course_id: st.course_id,
       group_id: st.group_id ?? "",
       start_date: st.start_date,
-      end_date: st.end_date ?? "",
       total_amount: Number(st.total_amount),
       discount: Number(st.discount),
       payment_due_date: st.payment_due_date ?? "",
-      first_lesson_date: st.first_lesson_date ?? "",
       lesson_time: st.lesson_time ?? "",
       comment: st.comment ?? "",
       status: st.status,
@@ -171,11 +171,9 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         course_id: editForm.course_id,
         group_id: editForm.group_id || null,
         start_date: editForm.start_date,
-        end_date: editForm.end_date || null,
         total_amount: Number(editForm.total_amount),
         discount: Number(editForm.discount),
         payment_due_date: editForm.payment_due_date || null,
-        first_lesson_date: editForm.first_lesson_date || null,
         lesson_time: editForm.lesson_time.trim(),
         comment: editForm.comment.trim(),
         status: editForm.status,
@@ -222,7 +220,10 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
           />
           <select
             value={form.course_id}
-            onChange={(e) => setForm((p) => ({ ...p, course_id: e.target.value, group_id: "" }))}
+            onChange={(e) => {
+              const id = e.target.value;
+              setForm((p) => ({ ...p, course_id: id, group_id: "", total_amount: coursePrice(id) }));
+            }}
             className="rounded-lg border border-slate-200 px-3 py-2"
           >
             {courses.map((c) => (
@@ -245,46 +246,38 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
                 </option>
               ))}
           </select>
-          <input
-            type="date"
-            value={form.start_date}
-            onChange={(e) => setForm((p) => ({ ...p, start_date: e.target.value }))}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          />
-          <input
-            type="date"
-            value={form.end_date}
-            onChange={(e) => setForm((p) => ({ ...p, end_date: e.target.value }))}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          />
-          <input
-            type="number"
-            placeholder="Umumiy summa"
-            value={form.total_amount}
-            onChange={(e) => setForm((p) => ({ ...p, total_amount: Number(e.target.value) }))}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          />
-          <input
-            type="number"
-            placeholder="Chegirma"
-            value={form.discount}
-            onChange={(e) => setForm((p) => ({ ...p, discount: Number(e.target.value) }))}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          />
-          <input
-            type="date"
-            title="To‘lov kuni"
-            value={form.payment_due_date}
-            onChange={(e) => setForm((p) => ({ ...p, payment_due_date: e.target.value }))}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          />
-          <input
-            type="date"
-            title="Birinchi darsga kelgan sana"
-            value={form.first_lesson_date}
-            onChange={(e) => setForm((p) => ({ ...p, first_lesson_date: e.target.value }))}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          />
+          <FormField label="Dars boshlanishi">
+            <input
+              type="date"
+              value={form.start_date}
+              onChange={(e) => setForm((p) => ({ ...p, start_date: e.target.value }))}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2"
+            />
+          </FormField>
+          <FormField label="To‘lov sanasi">
+            <input
+              type="date"
+              value={form.payment_due_date}
+              onChange={(e) => setForm((p) => ({ ...p, payment_due_date: e.target.value }))}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2"
+            />
+          </FormField>
+          <FormField label="Umumiy summa (kurs narxi)">
+            <input
+              type="number"
+              value={form.total_amount}
+              onChange={(e) => setForm((p) => ({ ...p, total_amount: Number(e.target.value) }))}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2"
+            />
+          </FormField>
+          <FormField label="Chegirma">
+            <input
+              type="number"
+              value={form.discount}
+              onChange={(e) => setForm((p) => ({ ...p, discount: Number(e.target.value) }))}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2"
+            />
+          </FormField>
           <input
             placeholder="Dars vaqti (masalan 10:00-12:00)"
             value={form.lesson_time}
@@ -326,7 +319,7 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
               <th className="px-4 py-3">Kurs</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">To‘lov</th>
-              <th className="px-4 py-3">To‘lov kuni</th>
+              <th className="px-4 py-3">To‘lov sanasi</th>
               <th className="px-4 py-3">Birinchi dars</th>
               <th className="px-4 py-3">Dars vaqti</th>
               <th className="px-4 py-3">Summa / to‘langan</th>
@@ -376,7 +369,7 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-600">{st.payment_due_date || "—"}</td>
                   <td className="px-4 py-3 text-xs text-slate-600">
-                    {st.first_lesson_date ? formatDate(st.first_lesson_date) : "—"}
+                    {formatDate(st.first_lesson_date ?? st.start_date)}
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-600">{st.lesson_time?.trim() || "—"}</td>
                   <td className="px-4 py-3 text-xs text-slate-700">
@@ -439,7 +432,10 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
               />
               <select
                 value={editForm.course_id}
-                onChange={(e) => setEditForm((p) => ({ ...p, course_id: e.target.value, group_id: "" }))}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setEditForm((p) => ({ ...p, course_id: id, group_id: "", total_amount: coursePrice(id) }));
+                }}
                 className="rounded-lg border border-slate-200 px-3 py-2"
               >
                 {courses.map((c) => (
@@ -462,44 +458,38 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
                     </option>
                   ))}
               </select>
-              <input
-                type="date"
-                value={editForm.start_date}
-                onChange={(e) => setEditForm((p) => ({ ...p, start_date: e.target.value }))}
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              />
-              <input
-                type="date"
-                value={editForm.end_date}
-                onChange={(e) => setEditForm((p) => ({ ...p, end_date: e.target.value }))}
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              />
-              <input
-                type="number"
-                value={editForm.total_amount}
-                onChange={(e) => setEditForm((p) => ({ ...p, total_amount: Number(e.target.value) }))}
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              />
-              <input
-                type="number"
-                value={editForm.discount}
-                onChange={(e) => setEditForm((p) => ({ ...p, discount: Number(e.target.value) }))}
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              />
-              <input
-                type="date"
-                title="To‘lov kuni"
-                value={editForm.payment_due_date}
-                onChange={(e) => setEditForm((p) => ({ ...p, payment_due_date: e.target.value }))}
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              />
-              <input
-                type="date"
-                title="Birinchi darsga kelgan sana"
-                value={editForm.first_lesson_date}
-                onChange={(e) => setEditForm((p) => ({ ...p, first_lesson_date: e.target.value }))}
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              />
+              <FormField label="Dars boshlanishi">
+                <input
+                  type="date"
+                  value={editForm.start_date}
+                  onChange={(e) => setEditForm((p) => ({ ...p, start_date: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                />
+              </FormField>
+              <FormField label="To‘lov sanasi">
+                <input
+                  type="date"
+                  value={editForm.payment_due_date}
+                  onChange={(e) => setEditForm((p) => ({ ...p, payment_due_date: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                />
+              </FormField>
+              <FormField label="Umumiy summa (kurs narxi)">
+                <input
+                  type="number"
+                  value={editForm.total_amount}
+                  onChange={(e) => setEditForm((p) => ({ ...p, total_amount: Number(e.target.value) }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                />
+              </FormField>
+              <FormField label="Chegirma">
+                <input
+                  type="number"
+                  value={editForm.discount}
+                  onChange={(e) => setEditForm((p) => ({ ...p, discount: Number(e.target.value) }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                />
+              </FormField>
               <input
                 placeholder="Dars vaqti (10:00-12:00)"
                 value={editForm.lesson_time}

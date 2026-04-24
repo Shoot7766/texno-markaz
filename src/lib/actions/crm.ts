@@ -189,11 +189,9 @@ export async function createManualStudent(payload: {
   course_id: string;
   group_id: string | null;
   start_date: string;
-  end_date: string | null;
   total_amount: number;
   discount: number;
   payment_due_date: string | null;
-  first_lesson_date: string | null;
   lesson_time: string;
   comment: string;
 }) {
@@ -209,14 +207,13 @@ export async function createManualStudent(payload: {
       course_id: payload.course_id,
       group_id: payload.group_id,
       start_date: payload.start_date,
-      end_date: payload.end_date,
+      end_date: null,
       status: "active",
       total_amount: payload.total_amount,
       paid_amount: 0,
       discount: payload.discount,
       payment_status: "qarz",
       payment_due_date: payload.payment_due_date,
-      first_lesson_date: payload.first_lesson_date,
       lesson_time: payload.lesson_time,
       comment: payload.comment,
     })
