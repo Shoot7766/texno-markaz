@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { pickNestedCourse, type NestedCourseField } from "@/lib/marketing/nested-course";
 import type { Group } from "@/lib/types";
 
 type Props = { params: Promise<{ groupId: string }> };
@@ -9,7 +10,7 @@ type PublicGroup = Pick<
   Group,
   "id" | "name" | "schedule" | "schedule_days" | "schedule_time" | "teacher" | "is_active"
 > & {
-  courses?: { name: string | null; slug: string | null } | null;
+  courses?: NestedCourseField;
 };
 
 type PublicStudent = {
@@ -32,7 +33,7 @@ export default async function GroupScheduleDetailPage({ params }: Props) {
     supabase.rpc("get_public_group_students", { p_group_id: groupId }),
   ]);
 
-  const group = (groupRow ?? null) as PublicGroup | null;
+  const group = (groupRow ?? null) as unknown as PublicGroup | null;
   if (!group) notFound();
 
   const students = (studentsData ?? []) as PublicStudent[];
@@ -52,7 +53,9 @@ export default async function GroupScheduleDetailPage({ params }: Props) {
 
       <article className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
         <h1 className="text-2xl font-bold text-white">{group.name}</h1>
-        <p className="mt-2 text-sm text-slate-400">Yo‘nalish: {group.courses?.name ?? "Belgilanmagan"}</p>
+        <p className="mt-2 text-sm text-slate-400">
+          Yo‘nalish: {pickNestedCourse(group.courses)?.name ?? "Belgilanmagan"}
+        </p>
         <p className="mt-1 text-sm text-emerald-300">Jadval: {scheduleText}</p>
         <p className="mt-1 text-sm text-slate-400">
           O‘qituvchi: {group.teacher || "Belgilanmagan"}

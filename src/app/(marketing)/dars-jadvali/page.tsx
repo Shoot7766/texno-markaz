@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { pickNestedCourse, type NestedCourseField } from "@/lib/marketing/nested-course";
 import type { Group } from "@/lib/types";
 
 type PublicGroup = Pick<
   Group,
   "id" | "name" | "course_id" | "schedule" | "schedule_days" | "schedule_time" | "teacher" | "is_active"
 > & {
-  courses?: { name: string | null; slug: string | null } | null;
+  courses?: NestedCourseField;
 };
 
 type PublicStudent = {
@@ -33,7 +34,7 @@ export default async function DarsJadvaliPage() {
     supabase.rpc("get_public_group_students", { p_group_id: null }),
   ]);
 
-  const groups = (groupsData ?? []) as PublicGroup[];
+  const groups = (groupsData ?? []) as unknown as PublicGroup[];
   const students = (studentsData ?? []) as PublicStudent[];
   const studentsByGroup = students.reduce(
     (acc, s) => {
@@ -81,7 +82,7 @@ export default async function DarsJadvaliPage() {
                 >
                   <p className="text-xs font-semibold text-white">{g.name}</p>
                   <p className="mt-0.5 text-[11px] text-slate-400">
-                    Yo‘nalish: {g.courses?.name ?? "Belgilanmagan"}
+                    Yo‘nalish: {pickNestedCourse(g.courses)?.name ?? "Belgilanmagan"}
                   </p>
                   <p className="mt-1 text-[11px] text-emerald-300">
                     {g.schedule_time || g.schedule || "Vaqt kiritilmagan"}
