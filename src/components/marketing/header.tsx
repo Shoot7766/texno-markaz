@@ -5,6 +5,7 @@ import { BrandLogo } from "@/components/marketing/brand-logo";
 const nav = [
   { href: "/", label: "Bosh sahifa" },
   { href: "/kurslar", label: "Kurslar" },
+  { href: "/dars-jadvali", label: "Dars jadvali" },
   { href: "/paketlar", label: "Paketlar" },
   { href: "/ariza", label: "Ariza" },
 ];

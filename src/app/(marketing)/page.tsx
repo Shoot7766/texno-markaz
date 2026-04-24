@@ -286,8 +286,8 @@ export default async function HomePage() {
             <h2 className="text-2xl font-bold text-white">Dars jadvali</h2>
             <p className="mt-1 text-sm text-slate-500">Faol guruhlar bo‘yicha haftalik vaqtlar</p>
           </div>
-          <Link href="/kurslar" className="text-sm font-medium text-[#00D1FF] transition hover:text-[#6C63FF]">
-            Kurslar sahifasi
+          <Link href="/dars-jadvali" className="text-sm font-medium text-[#00D1FF] transition hover:text-[#6C63FF]">
+            To‘liq jadval
           </Link>
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -297,14 +297,15 @@ export default async function HomePage() {
               ? `${(g.schedule_days ?? []).join(", ")}${g.schedule_time ? ` · ${g.schedule_time}` : ""}`
               : (g.schedule ?? "Jadval kiritilmagan");
             return (
-              <article
+              <Link
                 key={g.id}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-[#00D1FF]/30"
+                href={`/dars-jadvali/${g.id}`}
+                className="block rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-[#00D1FF]/30"
               >
                 <p className="text-sm font-semibold text-white">{g.name}</p>
                 <p className="mt-1 text-xs text-slate-500">{course?.name ?? "Kurs belgilanmagan"}</p>
                 <p className="mt-3 text-sm text-emerald-300">{scheduleLine}</p>
-              </article>
+              </Link>
             );
           })}
           {groups.length === 0 && (
