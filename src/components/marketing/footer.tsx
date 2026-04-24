@@ -64,6 +64,11 @@ export function MarketingFooter({
               </Link>
             </li>
             <li>
+              <Link href="/dars-jadvali" className="transition hover:text-[#00D1FF]">
+                Dars jadvali
+              </Link>
+            </li>
+            <li>
               <Link href="/ariza" className="transition hover:text-[#00D1FF]">
                 Ariza
               </Link>

@@ -22,12 +22,12 @@ export function MarketingHeader({ centerName, logoUrl }: Props) {
         <Link href="/" className="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-90">
           <BrandLogo logoUrl={logoUrl} centerName={centerName} size="md" priority />
         </Link>
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-4 lg:gap-6 md:flex">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-slate-400 transition hover:text-[#00D1FF]"
+              className="whitespace-nowrap text-sm font-medium text-slate-400 transition hover:text-[#00D1FF]"
             >
               {item.label}
             </Link>
