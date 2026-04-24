@@ -18,7 +18,7 @@ import {
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
 import { formatUzs } from "@/lib/format";
-import type { Course, Package, PublicStats } from "@/lib/types";
+import type { Course, Group, Package, PublicStats } from "@/lib/types";
 
 const FEATURED_SLUGS: { slug: string; label: string; Icon: typeof Cpu }[] = [
   { slug: "kompyuter-savodxonligi", label: "Kompyuter savodxonligi", Icon: Cpu },
@@ -32,7 +32,7 @@ const FEATURED_SLUGS: { slug: string; label: string; Icon: typeof Cpu }[] = [
 async function load() {
   try {
     const supabase = createPublicSupabaseClient();
-    const [coursesRes, packagesRes, statsRes] = await Promise.all([
+    const [coursesRes, packagesRes, statsRes, groupsRes] = await Promise.all([
       supabase
         .from("courses")
         .select("*")
@@ -45,12 +45,21 @@ async function load() {
         .order("sort_order", { ascending: true })
         .limit(4),
       supabase.from("public_stats").select("*").limit(1).maybeSingle(),
+      supabase
+        .from("groups")
+        .select("id, name, course_id, schedule, schedule_days, schedule_time, is_active")
+        .eq("is_active", true)
+        .order("name", { ascending: true }),
     ]);
     const allCourses = mergeMissingCatalogCourses((coursesRes.data ?? []) as Course[]);
     return {
       courses: allCourses.slice(0, 8),
       packages: (packagesRes.data ?? []) as Package[],
       stats: (statsRes.data ?? null) as PublicStats | null,
+      groups: (groupsRes.data ?? []) as Pick<
+        Group,
+        "id" | "name" | "course_id" | "schedule" | "schedule_days" | "schedule_time" | "is_active"
+      >[],
       courseBySlug: Object.fromEntries(allCourses.map((c) => [c.slug, c])) as Record<string, Course>,
     };
   } catch {
@@ -59,13 +68,14 @@ async function load() {
       courses: fb.slice(0, 8),
       packages: [],
       stats: null,
+      groups: [],
       courseBySlug: Object.fromEntries(fb.map((c) => [c.slug, c])) as Record<string, Course>,
     };
   }
 }
 
 export default async function HomePage() {
-  const { courses, packages, stats, courseBySlug } = await load();
+  const { courses, packages, stats, groups, courseBySlug } = await load();
 
   return (
     <div className="overflow-hidden">
@@ -266,6 +276,39 @@ export default async function HomePage() {
                 </div>
               </article>
             ))
+          )}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Dars jadvali</h2>
+            <p className="mt-1 text-sm text-slate-500">Faol guruhlar bo‘yicha haftalik vaqtlar</p>
+          </div>
+          <Link href="/kurslar" className="text-sm font-medium text-[#00D1FF] transition hover:text-[#6C63FF]">
+            Kurslar sahifasi
+          </Link>
+        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {groups.slice(0, 9).map((g) => {
+            const course = courses.find((c) => c.id === g.course_id);
+            const scheduleLine = (g.schedule_days ?? []).length
+              ? `${(g.schedule_days ?? []).join(", ")}${g.schedule_time ? ` · ${g.schedule_time}` : ""}`
+              : (g.schedule ?? "Jadval kiritilmagan");
+            return (
+              <article
+                key={g.id}
+                className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-[#00D1FF]/30"
+              >
+                <p className="text-sm font-semibold text-white">{g.name}</p>
+                <p className="mt-1 text-xs text-slate-500">{course?.name ?? "Kurs belgilanmagan"}</p>
+                <p className="mt-3 text-sm text-emerald-300">{scheduleLine}</p>
+              </article>
+            );
+          })}
+          {groups.length === 0 && (
+            <p className="text-sm text-slate-500">Hozircha dars jadvali kiritilmagan.</p>
           )}
         </div>
       </section>

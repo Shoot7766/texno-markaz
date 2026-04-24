@@ -44,11 +44,14 @@ export default async function KursDetailPage({ params }: Props) {
   if (!c) notFound();
   const { data: groupRows } = await supabase
     .from("groups")
-    .select("id, name, schedule, teacher")
+    .select("id, name, schedule, schedule_days, schedule_time, teacher")
     .eq("course_id", c.id)
     .eq("is_active", true)
     .order("name", { ascending: true });
-  const groups = (groupRows ?? []) as Pick<Group, "id" | "name" | "schedule" | "teacher">[];
+  const groups = (groupRows ?? []) as Pick<
+    Group,
+    "id" | "name" | "schedule" | "schedule_days" | "schedule_time" | "teacher"
+  >[];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
@@ -109,7 +112,11 @@ export default async function KursDetailPage({ params }: Props) {
                 {groups.map((g) => (
                   <div key={g.id} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
                     <div className="text-sm font-medium text-white">{g.name}</div>
-                    <div className="text-xs text-emerald-300">{g.schedule || "Jadval kiritilmagan"}</div>
+                    <div className="text-xs text-emerald-300">
+                      {(g.schedule_days ?? []).length
+                        ? `${(g.schedule_days ?? []).join(", ")}${g.schedule_time ? ` · ${g.schedule_time}` : ""}`
+                        : (g.schedule ?? "Jadval kiritilmagan")}
+                    </div>
                     <div className="text-xs text-slate-400">
                       {g.teacher ? `O‘qituvchi: ${g.teacher}` : "O‘qituvchi belgilanmagan"}
                     </div>

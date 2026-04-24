@@ -11,7 +11,7 @@ export const metadata = {
 
 export default async function KurslarPage() {
   let courses: Course[] = [];
-  let groups: Pick<Group, "course_id" | "schedule" | "is_active">[] = [];
+  let groups: Pick<Group, "course_id" | "schedule" | "schedule_days" | "schedule_time" | "is_active">[] = [];
   try {
     const supabase = createPublicSupabaseClient();
     const [{ data: courseData }, { data: groupData }] = await Promise.all([
@@ -20,16 +20,30 @@ export default async function KurslarPage() {
         .select("*")
         .eq("is_active", true)
         .order("sort_order", { ascending: true }),
-      supabase.from("groups").select("course_id, schedule, is_active").eq("is_active", true),
+      supabase
+        .from("groups")
+        .select("course_id, schedule, schedule_days, schedule_time, is_active")
+        .eq("is_active", true),
     ]);
     courses = mergeMissingCatalogCourses((courseData ?? []) as Course[]);
-    groups = (groupData ?? []) as Pick<Group, "course_id" | "schedule" | "is_active">[];
+    groups = (groupData ?? []) as Pick<
+      Group,
+      "course_id" | "schedule" | "schedule_days" | "schedule_time" | "is_active"
+    >[];
   } catch {
     courses = mergeMissingCatalogCourses([]);
   }
-  const scheduleByCourseId = new Map(
-    groups.filter((g) => g.course_id && g.schedule).map((g) => [g.course_id as string, g.schedule as string])
-  );
+  const scheduleByCourseId = new Map<string, string>();
+  groups.forEach((g) => {
+    if (!g.course_id) return;
+    const days = (g.schedule_days ?? []).join(", ");
+    const line = days
+      ? `${days}${g.schedule_time ? ` · ${g.schedule_time}` : ""}`
+      : (g.schedule ?? "");
+    if (!line) return;
+    const prev = scheduleByCourseId.get(g.course_id);
+    scheduleByCourseId.set(g.course_id, prev ? `${prev}; ${line}` : line);
+  });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
