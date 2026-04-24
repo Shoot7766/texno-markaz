@@ -19,6 +19,8 @@ type PublicStudent = {
   student_name: string;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function GroupScheduleDetailPage({ params }: Props) {
   const { groupId } = await params;
   const supabase = createPublicSupabaseClient();

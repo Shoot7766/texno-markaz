@@ -17,6 +17,8 @@ type PublicStudent = {
   student_name: string;
 };
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Dars jadvali",
   description: "Haftalik dars jadvali, guruhlar va o‘quvchilar ro‘yxati.",
@@ -51,6 +53,12 @@ export default async function DarsJadvaliPage() {
       <p className="mt-2 text-slate-400">
         Hafta kunlari belgilangan guruhlar ustunlarda. Kunlarni o‘zingiz tanlamasangiz yoki faqat matn yozsangiz,
         guruhlar pastdagi blokda bir marta ko‘rinadi — har hafta jadvalni admin panelda yangilashingiz mumkin.
+      </p>
+      <p className="mt-2 text-xs text-slate-500">
+        <strong className="font-medium text-slate-400">O‘quvchi soni nima uchun 0?</strong> Son faqat shu guruhga
+        admin panelda biriktirilgan, holati «faol» bo‘lgan o‘quvchilarni sanaydi. Agar o‘quvchi «Guruhsiz» yoki
+        boshqa guruhda bo‘lsa, bu yerda 0 ko‘rinadi —{" "}
+        <span className="text-slate-400">Admin → O‘quvchilar → Tahrirlash → Guruhni tanlang.</span>
       </p>
 
       <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-3">

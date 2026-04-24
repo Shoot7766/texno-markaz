@@ -21,6 +21,8 @@ import { partitionGroupsByWeekDays, WEEKDAY_SHORT_UZ } from "@/lib/marketing/wee
 import { formatUzs } from "@/lib/format";
 import type { Course, Group, Package, PublicStats } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 const FEATURED_SLUGS: { slug: string; label: string; Icon: typeof Cpu }[] = [
   { slug: "kompyuter-savodxonligi", label: "Kompyuter savodxonligi", Icon: Cpu },
   { slug: "web-dasturlash", label: "Dasturlash", Icon: Code2 },
