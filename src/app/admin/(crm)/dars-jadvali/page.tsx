@@ -4,10 +4,18 @@ import type { Course, Group } from "@/lib/types";
 
 export default async function DarsJadvaliPage() {
   const supabase = await createClient();
-  const [{ data: groups }, { data: courses }] = await Promise.all([
+  const [{ data: groups }, { data: courses }, { data: students }] = await Promise.all([
     supabase.from("groups").select("*").order("name", { ascending: true }),
     supabase.from("courses").select("id, name").order("sort_order", { ascending: true }),
+    supabase.from("students").select("id, group_id").eq("status", "active"),
   ]);
+  const studentsByGroup = (students ?? []).reduce(
+    (acc, row) => {
+      if (row.group_id) acc[row.group_id] = (acc[row.group_id] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   return (
     <div className="space-y-6">
@@ -20,6 +28,7 @@ export default async function DarsJadvaliPage() {
       <ScheduleBoard
         groups={(groups ?? []) as Group[]}
         courses={(courses ?? []) as Pick<Course, "id" | "name">[]}
+        studentsByGroup={studentsByGroup}
       />
     </div>
   );

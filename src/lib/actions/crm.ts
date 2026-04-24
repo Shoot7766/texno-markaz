@@ -193,6 +193,8 @@ export async function createManualStudent(payload: {
   total_amount: number;
   discount: number;
   payment_due_date: string | null;
+  lesson_days: string[];
+  lesson_time: string;
   comment: string;
 }) {
   const { supabase, user } = await requireAdmin();
@@ -214,6 +216,8 @@ export async function createManualStudent(payload: {
       discount: payload.discount,
       payment_status: "qarz",
       payment_due_date: payload.payment_due_date,
+      lesson_days: payload.lesson_days,
+      lesson_time: payload.lesson_time,
       comment: payload.comment,
     })
     .select("id")
@@ -241,6 +245,8 @@ export async function createGroup(payload: {
   course_id: string | null;
   teacher: string;
   schedule: string;
+  schedule_days: string[];
+  schedule_time: string;
   max_students: number;
   start_date: string | null;
   end_date: string | null;
@@ -254,6 +260,8 @@ export async function createGroup(payload: {
       course_id: payload.course_id,
       teacher: payload.teacher,
       schedule: payload.schedule,
+      schedule_days: payload.schedule_days,
+      schedule_time: payload.schedule_time,
       max_students: payload.max_students,
       start_date: payload.start_date,
       end_date: payload.end_date,
@@ -286,6 +294,8 @@ export async function updateGroup(
     course_id?: string | null;
     teacher?: string;
     schedule?: string;
+    schedule_days?: string[];
+    schedule_time?: string;
     max_students?: number;
     start_date?: string | null;
     end_date?: string | null;

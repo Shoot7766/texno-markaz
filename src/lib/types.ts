@@ -83,6 +83,8 @@ export interface Student {
   discount: number;
   payment_status: PaymentStatus;
   payment_due_date: string | null;
+  lesson_days: string[];
+  lesson_time: string | null;
   comment: string | null;
   created_at: string;
 }
@@ -93,6 +95,8 @@ export interface Group {
   course_id: string | null;
   teacher: string | null;
   schedule: string | null;
+  schedule_days: string[];
+  schedule_time: string | null;
   max_students: number;
   start_date: string | null;
   end_date: string | null;

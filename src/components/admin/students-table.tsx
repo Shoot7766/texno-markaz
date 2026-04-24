@@ -18,6 +18,7 @@ const statuses: { value: StudentStatus; label: string }[] = [
   { value: "finished", label: "Tugagan" },
   { value: "paused", label: "Pauza" },
 ];
+const weekDays = ["Du", "Se", "Chor", "Pay", "Juma", "Shan", "Yak"];
 
 export function StudentsTable({ initialStudents, courses, groups }: Props) {
   const router = useRouter();
@@ -41,6 +42,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
     total_amount: 0,
     discount: 0,
     payment_due_date: "",
+    lesson_days: [] as string[],
+    lesson_time: "",
     comment: "",
   });
   const [editForm, setEditForm] = useState({
@@ -55,6 +58,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
     total_amount: 0,
     discount: 0,
     payment_due_date: "",
+    lesson_days: [] as string[],
+    lesson_time: "",
     comment: "",
     status: "active" as StudentStatus,
   });
@@ -102,6 +107,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         total_amount: Number(form.total_amount),
         discount: Number(form.discount),
         payment_due_date: form.payment_due_date || null,
+        lesson_days: form.lesson_days,
+        lesson_time: form.lesson_time.trim(),
         comment: form.comment.trim(),
       });
       setForm((prev) => ({
@@ -115,6 +122,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         total_amount: 0,
         discount: 0,
         payment_due_date: "",
+        lesson_days: [],
+        lesson_time: "",
         comment: "",
       }));
       setFormSuccess("O‘quvchi muvaffaqiyatli qo‘shildi.");
@@ -143,6 +152,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
       total_amount: Number(st.total_amount),
       discount: Number(st.discount),
       payment_due_date: st.payment_due_date ?? "",
+      lesson_days: st.lesson_days ?? [],
+      lesson_time: st.lesson_time ?? "",
       comment: st.comment ?? "",
       status: st.status,
     });
@@ -165,6 +176,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         total_amount: Number(editForm.total_amount),
         discount: Number(editForm.discount),
         payment_due_date: editForm.payment_due_date || null,
+        lesson_days: editForm.lesson_days,
+        lesson_time: editForm.lesson_time.trim(),
         comment: editForm.comment.trim(),
         status: editForm.status,
       });
@@ -266,6 +279,39 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
             className="rounded-lg border border-slate-200 px-3 py-2"
           />
           <input
+            placeholder="Dars vaqti (masalan 10:00-12:00)"
+            value={form.lesson_time}
+            onChange={(e) => setForm((p) => ({ ...p, lesson_time: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <div className="rounded-lg border border-slate-200 px-3 py-2 lg:col-span-2">
+            <p className="mb-2 text-xs text-slate-500">Dars kunlari</p>
+            <div className="flex flex-wrap gap-2">
+              {weekDays.map((day) => {
+                const active = form.lesson_days.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() =>
+                      setForm((p) => ({
+                        ...p,
+                        lesson_days: active
+                          ? p.lesson_days.filter((d) => d !== day)
+                          : [...p.lesson_days, day],
+                      }))
+                    }
+                    className={`rounded-full px-3 py-1 text-xs ${
+                      active ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-700"
+                    }`}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <input
             placeholder="Izoh"
             value={form.comment}
             onChange={(e) => setForm((p) => ({ ...p, comment: e.target.value }))}
@@ -301,6 +347,7 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">To‘lov</th>
               <th className="px-4 py-3">To‘lov kuni</th>
+              <th className="px-4 py-3">Dars vaqti</th>
               <th className="px-4 py-3">Summa / to‘langan</th>
               <th className="px-4 py-3">Amal</th>
             </tr>
@@ -347,6 +394,10 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-600">{st.payment_due_date || "—"}</td>
+                  <td className="px-4 py-3 text-xs text-slate-600">
+                    {(st.lesson_days ?? []).join(", ") || "—"}
+                    {st.lesson_time ? ` · ${st.lesson_time}` : ""}
+                  </td>
                   <td className="px-4 py-3 text-xs text-slate-700">
                     <div>{formatUzs(Number(st.total_amount))}</div>
                     <div className="text-slate-500">
@@ -464,6 +515,41 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
                 onChange={(e) => setEditForm((p) => ({ ...p, payment_due_date: e.target.value }))}
                 className="rounded-lg border border-slate-200 px-3 py-2"
               />
+              <input
+                placeholder="Dars vaqti (10:00-12:00)"
+                value={editForm.lesson_time}
+                onChange={(e) => setEditForm((p) => ({ ...p, lesson_time: e.target.value }))}
+                className="rounded-lg border border-slate-200 px-3 py-2"
+              />
+              <div className="rounded-lg border border-slate-200 px-3 py-2 md:col-span-2">
+                <p className="mb-2 text-xs text-slate-500">Dars kunlari</p>
+                <div className="flex flex-wrap gap-2">
+                  {weekDays.map((day) => {
+                    const active = editForm.lesson_days.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() =>
+                          setEditForm((p) => ({
+                            ...p,
+                            lesson_days: active
+                              ? p.lesson_days.filter((d) => d !== day)
+                              : [...p.lesson_days, day],
+                          }))
+                        }
+                        className={`rounded-full px-3 py-1 text-xs ${
+                          active
+                            ? "bg-blue-600 text-white"
+                            : "border border-slate-200 text-slate-700"
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <select
                 value={editForm.status}
                 onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value as StudentStatus }))}
