@@ -26,8 +26,6 @@ export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
     schedule_time: "",
     teacher: "",
     max_students: 20,
-    start_date: "",
-    end_date: "",
     is_active: true,
   });
 
@@ -57,8 +55,6 @@ export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
       schedule_time: group.schedule_time ?? "",
       teacher: group.teacher ?? "",
       max_students: group.max_students,
-      start_date: group.start_date ?? "",
-      end_date: group.end_date ?? "",
       is_active: group.is_active,
     });
   }
@@ -75,8 +71,6 @@ export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
         schedule_time: form.schedule_time.trim(),
         teacher: form.teacher.trim(),
         max_students: form.max_students,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
         is_active: form.is_active,
       });
       setEditingId(null);
@@ -162,18 +156,6 @@ export function ScheduleBoard({ groups, courses, studentsByGroup }: Props) {
               onChange={(e) => setForm((p) => ({ ...p, max_students: Number(e.target.value) || 1 }))}
               className="rounded border border-slate-200 px-3 py-2"
               placeholder="Maksimal o‘quvchi"
-            />
-            <input
-              type="date"
-              value={form.start_date}
-              onChange={(e) => setForm((p) => ({ ...p, start_date: e.target.value }))}
-              className="rounded border border-slate-200 px-3 py-2"
-            />
-            <input
-              type="date"
-              value={form.end_date}
-              onChange={(e) => setForm((p) => ({ ...p, end_date: e.target.value }))}
-              className="rounded border border-slate-200 px-3 py-2"
             />
             <label className="flex items-center gap-2 rounded border border-slate-200 px-3 py-2">
               <input
