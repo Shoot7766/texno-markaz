@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { pickNestedCourse, type NestedCourseField } from "@/lib/marketing/nested-course";
+import { formatTimeDisplay } from "@/lib/format-time";
 import type { Group } from "@/lib/types";
 
 type Props = { params: Promise<{ groupId: string }> };
@@ -40,7 +41,7 @@ export default async function GroupScheduleDetailPage({ params }: Props) {
 
   const students = (studentsData ?? []) as PublicStudent[];
   const scheduleText = group.schedule_days?.length
-    ? `${group.schedule_days.join(", ")}${group.schedule_time ? ` · ${group.schedule_time}` : ""}`
+    ? `${group.schedule_days.join(", ")}${formatTimeDisplay(group.schedule_time) ? ` · ${formatTimeDisplay(group.schedule_time)}` : ""}`
     : (group.schedule ?? "Jadval kiritilmagan");
 
   return (

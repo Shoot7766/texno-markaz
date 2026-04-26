@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { getCourseFallbackBySlug } from "@/lib/marketing/course-fallbacks";
+import { formatTimeDisplay } from "@/lib/format-time";
 import { formatUzs } from "@/lib/format";
 import type { Course, Group } from "@/lib/types";
 
@@ -114,7 +115,7 @@ export default async function KursDetailPage({ params }: Props) {
                     <div className="text-sm font-medium text-white">{g.name}</div>
                     <div className="text-xs text-emerald-300">
                       {(g.schedule_days ?? []).length
-                        ? `${(g.schedule_days ?? []).join(", ")}${g.schedule_time ? ` · ${g.schedule_time}` : ""}`
+                        ? `${(g.schedule_days ?? []).join(", ")}${formatTimeDisplay(g.schedule_time) ? ` · ${formatTimeDisplay(g.schedule_time)}` : ""}`
                         : (g.schedule ?? "Jadval kiritilmagan")}
                     </div>
                     <div className="text-xs text-slate-400">

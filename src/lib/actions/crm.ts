@@ -193,6 +193,7 @@ export async function createManualStudent(payload: {
   discount: number;
   payment_due_date: string | null;
   lesson_time: string;
+  lesson_days: string[];
   comment: string;
 }) {
   const { supabase, user } = await requireAdmin();
@@ -215,6 +216,7 @@ export async function createManualStudent(payload: {
       payment_status: "qarz",
       payment_due_date: payload.payment_due_date,
       lesson_time: payload.lesson_time,
+      lesson_days: payload.lesson_days,
       comment: payload.comment,
     })
     .select("id")

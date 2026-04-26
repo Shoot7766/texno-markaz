@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
+import { formatTimeDisplay } from "@/lib/format-time";
 import { formatUzs } from "@/lib/format";
 import type { Course, Group } from "@/lib/types";
 
@@ -38,7 +39,7 @@ export default async function KurslarPage() {
     if (!g.course_id) return;
     const days = (g.schedule_days ?? []).join(", ");
     const line = days
-      ? `${days}${g.schedule_time ? ` · ${g.schedule_time}` : ""}`
+      ? `${days}${formatTimeDisplay(g.schedule_time) ? ` · ${formatTimeDisplay(g.schedule_time)}` : ""}`
       : (g.schedule ?? "");
     if (!line) return;
     const prev = scheduleByCourseId.get(g.course_id);

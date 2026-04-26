@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createGroup, updateGroup } from "@/lib/actions/crm";
 import { formatDate } from "@/lib/format";
+import { parseTimeMap, formatTimeDisplay } from "@/lib/format-time";
 import type { Course, Group } from "@/lib/types";
 
 type Props = {
@@ -24,7 +25,7 @@ export function GroupsManager({ groups, courses }: Props) {
     teacher: "",
     schedule: "",
     schedule_days: [] as string[],
-    schedule_time: "",
+    schedule_times: {} as Record<string, string>,
     max_students: 20,
     start_date: "",
     end_date: "",
@@ -39,7 +40,7 @@ export function GroupsManager({ groups, courses }: Props) {
     teacher: "",
     schedule: "",
     schedule_days: [] as string[],
-    schedule_time: "",
+    schedule_times: {} as Record<string, string>,
     max_students: 20,
     start_date: "",
     end_date: "",
@@ -55,7 +56,7 @@ export function GroupsManager({ groups, courses }: Props) {
       teacher: g.teacher ?? "",
       schedule: g.schedule ?? "",
       schedule_days: g.schedule_days ?? [],
-      schedule_time: g.schedule_time ?? "",
+      schedule_times: parseTimeMap(g.schedule_time),
       max_students: g.max_students,
       start_date: g.start_date ?? "",
       end_date: g.end_date ?? "",
@@ -73,9 +74,9 @@ export function GroupsManager({ groups, courses }: Props) {
         course_id: form.course_id || null,
         teacher: form.teacher.trim(),
         schedule:
-          form.schedule.trim() || `${form.schedule_days.join("/")} ${form.schedule_time}`.trim(),
+          form.schedule.trim() || `${form.schedule_days.join("/")} ${formatTimeDisplay(JSON.stringify(form.schedule_times))}`.trim(),
         schedule_days: form.schedule_days,
-        schedule_time: form.schedule_time.trim(),
+        schedule_time: JSON.stringify(form.schedule_times),
         max_students: Number(form.max_students) || 20,
         start_date: form.start_date || null,
         end_date: form.end_date || null,
@@ -86,7 +87,7 @@ export function GroupsManager({ groups, courses }: Props) {
         teacher: "",
         schedule: "",
         schedule_days: [],
-        schedule_time: "",
+        schedule_times: {},
         max_students: 20,
         start_date: "",
         end_date: "",
@@ -110,9 +111,9 @@ export function GroupsManager({ groups, courses }: Props) {
         teacher: editForm.teacher.trim(),
         schedule:
           editForm.schedule.trim() ||
-          `${editForm.schedule_days.join("/")} ${editForm.schedule_time}`.trim(),
+          `${editForm.schedule_days.join("/")} ${formatTimeDisplay(JSON.stringify(editForm.schedule_times))}`.trim(),
         schedule_days: editForm.schedule_days,
-        schedule_time: editForm.schedule_time.trim(),
+        schedule_time: JSON.stringify(editForm.schedule_times),
         max_students: Number(editForm.max_students) || 20,
         start_date: editForm.start_date || null,
         end_date: editForm.end_date || null,
@@ -166,14 +167,8 @@ export function GroupsManager({ groups, courses }: Props) {
             onChange={(e) => setForm((p) => ({ ...p, schedule: e.target.value }))}
             className="rounded-lg border border-slate-200 px-3 py-2"
           />
-          <input
-            placeholder="Dars vaqti (10:00-12:00)"
-            value={form.schedule_time}
-            onChange={(e) => setForm((p) => ({ ...p, schedule_time: e.target.value }))}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          />
           <div className="rounded-lg border border-slate-200 px-3 py-2 lg:col-span-2">
-            <p className="mb-2 text-xs text-slate-500">Dars kunlari</p>
+            <p className="mb-2 text-xs text-slate-500">Dars kunlari va vaqtlari</p>
             <div className="flex flex-wrap gap-2">
               {weekDays.map((day) => {
                 const active = form.schedule_days.includes(day);
@@ -182,12 +177,12 @@ export function GroupsManager({ groups, courses }: Props) {
                     key={day}
                     type="button"
                     onClick={() =>
-                      setForm((p) => ({
-                        ...p,
-                        schedule_days: active
-                          ? p.schedule_days.filter((d) => d !== day)
-                          : [...p.schedule_days, day],
-                      }))
+                      setForm((p) => {
+                        const newDays = active ? p.schedule_days.filter((d) => d !== day) : [...p.schedule_days, day];
+                        const newTimes = { ...p.schedule_times };
+                        if (!active && !newTimes[day]) newTimes[day] = "";
+                        return { ...p, schedule_days: newDays, schedule_times: newTimes };
+                      })
                     }
                     className={`rounded-full px-3 py-1 text-xs ${
                       active ? "bg-emerald-600 text-white" : "border border-slate-200 text-slate-700"
@@ -198,6 +193,26 @@ export function GroupsManager({ groups, courses }: Props) {
                 );
               })}
             </div>
+            {form.schedule_days.length > 0 && (
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {form.schedule_days.map((day) => (
+                  <div key={day} className="flex flex-col gap-1">
+                    <span className="text-xs font-medium text-slate-600">{day} vaqti:</span>
+                    <input
+                      placeholder="16:00"
+                      value={form.schedule_times[day] || ""}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          schedule_times: { ...p.schedule_times, [day]: e.target.value },
+                        }))
+                      }
+                      className="rounded border border-slate-200 px-2 py-1.5 text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <input
             type="number"
@@ -302,11 +317,6 @@ export function GroupsManager({ groups, courses }: Props) {
                 <td className="px-4 py-3 text-slate-600">
                   {editingId === g.id ? (
                     <div className="space-y-2">
-                      <input
-                        value={editForm.schedule_time}
-                        onChange={(e) => setEditForm((p) => ({ ...p, schedule_time: e.target.value }))}
-                        className="w-40 rounded border border-slate-200 px-2 py-1 text-sm"
-                      />
                       <div className="flex flex-wrap gap-1">
                         {weekDays.map((day) => {
                           const active = editForm.schedule_days.includes(day);
@@ -315,12 +325,12 @@ export function GroupsManager({ groups, courses }: Props) {
                               key={day}
                               type="button"
                               onClick={() =>
-                                setEditForm((p) => ({
-                                  ...p,
-                                  schedule_days: active
-                                    ? p.schedule_days.filter((d) => d !== day)
-                                    : [...p.schedule_days, day],
-                                }))
+                                setEditForm((p) => {
+                                  const newDays = active ? p.schedule_days.filter((d) => d !== day) : [...p.schedule_days, day];
+                                  const newTimes = { ...p.schedule_times };
+                                  if (!active && !newTimes[day]) newTimes[day] = "";
+                                  return { ...p, schedule_days: newDays, schedule_times: newTimes };
+                                })
                               }
                               className={`rounded-full px-2 py-0.5 text-xs ${
                                 active
@@ -333,11 +343,32 @@ export function GroupsManager({ groups, courses }: Props) {
                           );
                         })}
                       </div>
+                      {editForm.schedule_days.length > 0 && (
+                        <div className="grid gap-2 grid-cols-2">
+                          {editForm.schedule_days.map((day) => (
+                            <div key={day} className="flex flex-col gap-1">
+                              <span className="text-[10px] text-slate-500">{day}:</span>
+                              <input
+                                placeholder="16:00"
+                                value={editForm.schedule_times[day] || ""}
+                                onChange={(e) =>
+                                  setEditForm((p) => ({
+                                    ...p,
+                                    schedule_times: { ...p.schedule_times, [day]: e.target.value },
+                                  }))
+                                }
+                                className="rounded border border-slate-200 px-2 py-1 text-xs"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <>
                       {(g.schedule_days ?? []).join(", ") || "—"}
-                      {g.schedule_time ? ` · ${g.schedule_time}` : ""}
+                      <br />
+                      <span className="text-[11px] text-slate-500">{formatTimeDisplay(g.schedule_time)}</span>
                     </>
                   )}
                 </td>

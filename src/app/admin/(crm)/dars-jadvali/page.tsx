@@ -7,7 +7,7 @@ export default async function DarsJadvaliPage() {
   const [{ data: groups }, { data: courses }, { data: students }] = await Promise.all([
     supabase.from("groups").select("*").order("name", { ascending: true }),
     supabase.from("courses").select("id, name").order("sort_order", { ascending: true }),
-    supabase.from("students").select("id, group_id").eq("status", "active"),
+    supabase.from("students").select("id, group_id, first_name, last_name, phone, lesson_days, lesson_time").eq("status", "active"),
   ]);
   const studentsByGroup = (students ?? []).reduce(
     (acc, row) => {
@@ -28,6 +28,7 @@ export default async function DarsJadvaliPage() {
       <ScheduleBoard
         groups={(groups ?? []) as Group[]}
         courses={(courses ?? []) as Pick<Course, "id" | "name">[]}
+        students={(students ?? []) as any[]}
         studentsByGroup={studentsByGroup}
       />
     </div>

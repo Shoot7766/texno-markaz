@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import type { Course, Group, Student, StudentStatus } from "@/lib/types";
 import { createManualStudent, updateStudent } from "@/lib/actions/crm";
 import { formatDate, formatUzs } from "@/lib/format";
+import { parseTimeMap, formatTimeDisplay } from "@/lib/format-time";
+import { WEEKDAY_SHORT_UZ } from "@/lib/marketing/week-schedule";
 import { Loader2, Search } from "lucide-react";
 
 type Props = {
@@ -49,7 +51,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
     total_amount: Number(courses[0]?.price ?? 0),
     discount: 0,
     payment_due_date: "",
-    lesson_time: "",
+    lesson_times: {} as Record<string, string>,
+    lesson_days: [] as string[],
     comment: "",
   });
   const [editForm, setEditForm] = useState({
@@ -63,7 +66,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
     total_amount: 0,
     discount: 0,
     payment_due_date: "",
-    lesson_time: "",
+    lesson_times: {} as Record<string, string>,
+    lesson_days: [] as string[],
     comment: "",
     status: "active" as StudentStatus,
   });
@@ -110,7 +114,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         total_amount: Number(form.total_amount),
         discount: Number(form.discount),
         payment_due_date: form.payment_due_date || null,
-        lesson_time: form.lesson_time.trim(),
+        lesson_time: JSON.stringify(form.lesson_times),
+        lesson_days: form.lesson_days,
         comment: form.comment.trim(),
       });
       setForm((prev) => ({
@@ -123,7 +128,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         total_amount: Number(courses[0]?.price ?? 0),
         discount: 0,
         payment_due_date: "",
-        lesson_time: "",
+        lesson_times: {},
+        lesson_days: [],
         comment: "",
       }));
       setFormSuccess("O‘quvchi muvaffaqiyatli qo‘shildi.");
@@ -152,7 +158,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
       total_amount: Number(st.total_amount),
       discount: Number(st.discount),
       payment_due_date: st.payment_due_date ?? "",
-      lesson_time: st.lesson_time ?? "",
+      lesson_times: parseTimeMap(st.lesson_time),
+      lesson_days: st.lesson_days ?? [],
       comment: st.comment ?? "",
       status: st.status,
     });
@@ -174,7 +181,8 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
         total_amount: Number(editForm.total_amount),
         discount: Number(editForm.discount),
         payment_due_date: editForm.payment_due_date || null,
-        lesson_time: editForm.lesson_time.trim(),
+        lesson_time: JSON.stringify(editForm.lesson_times),
+        lesson_days: editForm.lesson_days,
         comment: editForm.comment.trim(),
         status: editForm.status,
       });
@@ -278,12 +286,53 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
               className="w-full rounded-lg border border-slate-200 px-3 py-2"
             />
           </FormField>
-          <input
-            placeholder="Dars vaqti (masalan 10:00-12:00)"
-            value={form.lesson_time}
-            onChange={(e) => setForm((p) => ({ ...p, lesson_time: e.target.value }))}
-            className="rounded-lg border border-slate-200 px-3 py-2"
-          />
+          <div className="flex flex-col gap-2 rounded-lg border border-slate-200 px-3 py-2 lg:col-span-2">
+            <span className="text-xs font-medium text-slate-600">Dars kunlari va vaqtlari</span>
+            <div className="flex flex-wrap items-center gap-1">
+              {WEEKDAY_SHORT_UZ.map((day) => {
+                const active = form.lesson_days.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() =>
+                      setForm((p) => {
+                        const newDays = active ? p.lesson_days.filter((d) => d !== day) : [...p.lesson_days, day];
+                        const newTimes = { ...p.lesson_times };
+                        if (!active && !newTimes[day]) newTimes[day] = "";
+                        return { ...p, lesson_days: newDays, lesson_times: newTimes };
+                      })
+                    }
+                    className={`rounded-full px-2.5 py-1 text-[11px] ${
+                      active ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-700"
+                    }`}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+            {form.lesson_days.length > 0 && (
+              <div className="mt-2 grid gap-2 grid-cols-2 md:grid-cols-3">
+                {form.lesson_days.map((day) => (
+                  <div key={day} className="flex flex-col gap-1">
+                    <span className="text-[10px] text-slate-500">{day}:</span>
+                    <input
+                      placeholder="16:00"
+                      value={form.lesson_times[day] || ""}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          lesson_times: { ...p.lesson_times, [day]: e.target.value },
+                        }))
+                      }
+                      className="rounded border border-slate-200 px-2 py-1 text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <input
             placeholder="Izoh"
             value={form.comment}
@@ -321,7 +370,7 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
               <th className="px-4 py-3">To‘lov</th>
               <th className="px-4 py-3">To‘lov sanasi</th>
               <th className="px-4 py-3">Birinchi dars</th>
-              <th className="px-4 py-3">Dars vaqti</th>
+              <th className="px-4 py-3">Kunlar / Vaqt</th>
               <th className="px-4 py-3">Summa / to‘langan</th>
               <th className="px-4 py-3">Amal</th>
             </tr>
@@ -371,7 +420,10 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
                   <td className="px-4 py-3 text-xs text-slate-600">
                     {formatDate(st.first_lesson_date ?? st.start_date)}
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-600">{st.lesson_time?.trim() || "—"}</td>
+                  <td className="px-4 py-3 text-xs text-slate-600">
+                    <div className="font-medium text-slate-800">{st.lesson_days?.join(", ") || "Kun yo'q"}</div>
+                    <div>{formatTimeDisplay(st.lesson_time)}</div>
+                  </td>
                   <td className="px-4 py-3 text-xs text-slate-700">
                     <div>{formatUzs(Number(st.total_amount))}</div>
                     <div className="text-slate-500">
@@ -490,12 +542,53 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
                   className="w-full rounded-lg border border-slate-200 px-3 py-2"
                 />
               </FormField>
-              <input
-                placeholder="Dars vaqti (10:00-12:00)"
-                value={editForm.lesson_time}
-                onChange={(e) => setEditForm((p) => ({ ...p, lesson_time: e.target.value }))}
-                className="rounded-lg border border-slate-200 px-3 py-2"
-              />
+              <div className="flex flex-col gap-2 rounded-lg border border-slate-200 px-3 py-2">
+                <span className="text-xs font-medium text-slate-600">Dars kunlari va vaqtlari</span>
+                <div className="flex flex-wrap items-center gap-1">
+                  {WEEKDAY_SHORT_UZ.map((day) => {
+                    const active = editForm.lesson_days.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() =>
+                          setEditForm((p) => {
+                            const newDays = active ? p.lesson_days.filter((d) => d !== day) : [...p.lesson_days, day];
+                            const newTimes = { ...p.lesson_times };
+                            if (!active && !newTimes[day]) newTimes[day] = "";
+                            return { ...p, lesson_days: newDays, lesson_times: newTimes };
+                          })
+                        }
+                        className={`rounded-full px-2.5 py-1 text-[11px] ${
+                          active ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-700"
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+                {editForm.lesson_days.length > 0 && (
+                  <div className="mt-2 grid gap-2 grid-cols-2">
+                    {editForm.lesson_days.map((day) => (
+                      <div key={day} className="flex flex-col gap-1">
+                        <span className="text-[10px] text-slate-500">{day}:</span>
+                        <input
+                          placeholder="16:00"
+                          value={editForm.lesson_times[day] || ""}
+                          onChange={(e) =>
+                            setEditForm((p) => ({
+                              ...p,
+                              lesson_times: { ...p.lesson_times, [day]: e.target.value },
+                            }))
+                          }
+                          className="rounded border border-slate-200 px-2 py-1 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <select
                 value={editForm.status}
                 onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value as StudentStatus }))}

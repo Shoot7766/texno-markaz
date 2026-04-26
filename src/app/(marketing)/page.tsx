@@ -18,6 +18,7 @@ import {
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
 import { partitionGroupsByWeekDays, WEEKDAY_SHORT_UZ } from "@/lib/marketing/week-schedule";
+import { getTimeForDay, formatTimeDisplay } from "@/lib/format-time";
 import { formatUzs } from "@/lib/format";
 import type { Course, Group, Package, PublicStats } from "@/lib/types";
 
@@ -306,7 +307,7 @@ export default async function HomePage() {
               <div className="mt-3 space-y-2">
                 {(groupsByDay[day] ?? []).map((g) => {
                   const course = courses.find((c) => c.id === g.course_id);
-                  const scheduleLine = g.schedule_time || g.schedule || "Vaqt kiritilmagan";
+                  const scheduleLine = getTimeForDay(g.schedule_time, day) || g.schedule || "Vaqt kiritilmagan";
                   return (
                     <div
                       key={`${day}-${g.id}`}
@@ -340,7 +341,7 @@ export default async function HomePage() {
             <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {groupsWithoutDays.map((g) => {
                 const course = courses.find((c) => c.id === g.course_id);
-                const scheduleLine = g.schedule_time || g.schedule || "Vaqt kiritilmagan";
+                const scheduleLine = formatTimeDisplay(g.schedule_time) || g.schedule || "Vaqt kiritilmagan";
                 return (
                   <div
                     key={g.id}

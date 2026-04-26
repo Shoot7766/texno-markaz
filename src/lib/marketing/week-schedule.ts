@@ -4,6 +4,7 @@ export const WEEKDAY_SHORT_UZ = ["Du", "Se", "Chor", "Pay", "Juma", "Shan", "Yak
 type HasScheduleFields = {
   schedule?: string | null;
   schedule_days?: string[] | null;
+  lesson_days?: string[] | null;
 };
 
 /**
@@ -18,7 +19,7 @@ export function partitionGroupsByWeekDays<T extends HasScheduleFields>(
   const unscheduled: T[] = [];
 
   for (const g of items) {
-    const fromField = (g.schedule_days ?? []).filter(Boolean);
+    const fromField = (g.schedule_days ?? g.lesson_days ?? []).filter(Boolean);
     const fromText =
       fromField.length > 0
         ? fromField

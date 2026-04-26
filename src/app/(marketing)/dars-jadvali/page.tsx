@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { pickNestedCourse, type NestedCourseField } from "@/lib/marketing/nested-course";
 import { partitionGroupsByWeekDays, WEEKDAY_SHORT_UZ } from "@/lib/marketing/week-schedule";
+import { getTimeForDay, formatTimeDisplay } from "@/lib/format-time";
 import type { Group } from "@/lib/types";
 
 type PublicGroup = Pick<
@@ -81,7 +82,7 @@ export default async function DarsJadvaliPage() {
                     Yo‘nalish: {pickNestedCourse(g.courses)?.name ?? "Belgilanmagan"}
                   </p>
                   <p className="mt-1 text-[11px] text-emerald-300">
-                    {g.schedule_time || g.schedule || "Vaqt kiritilmagan"}
+                    {getTimeForDay(g.schedule_time, day) || g.schedule || "Vaqt kiritilmagan"}
                   </p>
                   <p className="mt-1 text-[11px] text-slate-500">O‘quvchi soni: {studentsByGroup[g.id] ?? 0}</p>
                 </Link>
@@ -116,7 +117,7 @@ export default async function DarsJadvaliPage() {
                   Yo‘nalish: {pickNestedCourse(g.courses)?.name ?? "Belgilanmagan"}
                 </p>
                 <p className="mt-1 text-[11px] text-emerald-300">
-                  {g.schedule_time || g.schedule || "Vaqt / jadval kiritilmagan"}
+                  {formatTimeDisplay(g.schedule_time) || g.schedule || "Vaqt / jadval kiritilmagan"}
                 </p>
                 <p className="mt-1 text-[11px] text-slate-500">O‘quvchi soni: {studentsByGroup[g.id] ?? 0}</p>
               </Link>
