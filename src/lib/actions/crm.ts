@@ -356,6 +356,8 @@ export async function upsertSettings(patch: Record<string, unknown>) {
       .from("settings")
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq("id", data.id);
+  } else {
+    await supabase.from("settings").insert({ ...patch });
   }
   await supabase.from("activity_logs").insert({
     actor_id: user.id,
@@ -377,6 +379,8 @@ export async function savePublicStats(patch: Record<string, unknown>) {
   const { data } = await supabase.from("public_stats").select("id").limit(1).maybeSingle();
   if (data?.id) {
     await supabase.from("public_stats").update(patch).eq("id", data.id);
+  } else {
+    await supabase.from("public_stats").insert(patch);
   }
   await supabase.from("activity_logs").insert({
     actor_id: user.id,
