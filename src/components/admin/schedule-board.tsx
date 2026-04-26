@@ -304,6 +304,27 @@ export function ScheduleBoard({ groups, courses, students, studentsByGroup }: Pr
               Bekor
             </button>
           </div>
+
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <h4 className="text-sm font-semibold text-slate-900">
+              Guruh o‘quvchilari ({studentsByGroup[editingId] ?? 0} ta)
+            </h4>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {students
+                .filter((s) => s.group_id === editingId)
+                .map((s) => (
+                  <div key={s.id} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
+                    <p className="font-medium text-slate-800">
+                      {s.first_name} {s.last_name}
+                    </p>
+                    <p className="mt-0.5 text-slate-500">{s.phone}</p>
+                  </div>
+                ))}
+              {students.filter((s) => s.group_id === editingId).length === 0 && (
+                <p className="col-span-full text-xs text-slate-500">Bu guruhda faol o‘quvchilar yo‘q.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
