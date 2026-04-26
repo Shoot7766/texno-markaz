@@ -268,7 +268,7 @@ export function GroupsManager({ groups, courses }: Props) {
                     <input
                       value={editForm.name}
                       onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                      className="w-44 rounded border border-slate-200 px-2 py-1 text-sm"
+                      className="w-full min-w-[120px] rounded border border-slate-200 px-2 py-1 text-sm"
                     />
                   ) : (
                     g.name
@@ -308,13 +308,13 @@ export function GroupsManager({ groups, courses }: Props) {
                     <input
                       value={editForm.schedule}
                       onChange={(e) => setEditForm((p) => ({ ...p, schedule: e.target.value }))}
-                      className="w-52 rounded border border-slate-200 px-2 py-1 text-sm"
+                      className="w-full min-w-[120px] rounded border border-slate-200 px-2 py-1 text-sm"
                     />
                   ) : (
                     g.schedule || "—"
                   )}
                 </td>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-slate-600 min-w-[240px]">
                   {editingId === g.id ? (
                     <div className="space-y-2">
                       <div className="flex flex-wrap gap-1">
@@ -374,7 +374,7 @@ export function GroupsManager({ groups, courses }: Props) {
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-500">
                   {editingId === g.id ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-2 min-w-[130px]">
                       <input
                         type="date"
                         value={editForm.start_date}
