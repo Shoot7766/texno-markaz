@@ -19,6 +19,7 @@ export function ScheduleBoard({ groups, courses, students, studentsByGroup }: Pr
   const [activeTab, setActiveTab] = useState<"groups" | "students">("groups");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+  const [studentSearch, setStudentSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -100,6 +101,32 @@ export function ScheduleBoard({ groups, courses, students, studentsByGroup }: Pr
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Jadvalni saqlab bo‘lmadi.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function addToGroup(stId: string) {
+    if (!editingId) return;
+    setSaving(true);
+    try {
+      await updateStudent(stId, { group_id: editingId });
+      setStudentSearch("");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "O‘quvchini qo‘shib bo‘lmadi.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function removeFromGroup(stId: string) {
+    setSaving(true);
+    try {
+      await updateStudent(stId, { group_id: null });
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "O‘quvchini guruhdan chiqarib bo‘lmadi.");
     } finally {
       setSaving(false);
     }
@@ -306,22 +333,97 @@ export function ScheduleBoard({ groups, courses, students, studentsByGroup }: Pr
           </div>
 
           <div className="mt-6 border-t border-slate-200 pt-4">
-            <h4 className="text-sm font-semibold text-slate-900">
-              Guruh o‘quvchilari ({studentsByGroup[editingId] ?? 0} ta)
-            </h4>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h4 className="text-sm font-semibold text-slate-900">
+                Guruh o‘quvchilari ({studentsByGroup[editingId] ?? 0} ta)
+              </h4>
+              <div className="relative w-full max-w-xs">
+                <input
+                  type="text"
+                  placeholder="O‘quvchi qo‘shish (ism orqali)..."
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs focus:border-blue-500 focus:bg-white focus:outline-none"
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                />
+                {studentSearch && (
+                  <div className="absolute right-0 top-full z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5">
+                    {students
+                      .filter(
+                        (s) =>
+                          s.group_id !== editingId &&
+                          `${s.first_name} ${s.last_name} ${s.phone}`
+                            .toLowerCase()
+                            .includes(studentSearch.toLowerCase())
+                      )
+                      .slice(0, 10)
+                      .map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => addToGroup(s.id)}
+                          className="flex w-full flex-col border-b border-slate-50 px-4 py-2.5 text-left hover:bg-blue-50/50 last:border-0"
+                        >
+                          <span className="text-xs font-semibold text-slate-800">
+                            {s.first_name} {s.last_name}
+                          </span>
+                          <span className="text-[10px] text-slate-500">
+                            {s.phone} {s.group_id ? "— Boshqa guruhda" : ""}
+                          </span>
+                        </button>
+                      ))}
+                    {students.filter(
+                      (s) =>
+                        s.group_id !== editingId &&
+                        `${s.first_name} ${s.last_name} ${s.phone}`
+                          .toLowerCase()
+                          .includes(studentSearch.toLowerCase())
+                    ).length === 0 && (
+                      <div className="px-4 py-3 text-center text-[11px] text-slate-400">
+                        O‘quvchi topilmadi
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {students
                 .filter((s) => s.group_id === editingId)
                 .map((s) => (
-                  <div key={s.id} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
-                    <p className="font-medium text-slate-800">
+                  <div
+                    key={s.id}
+                    className="group relative rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 transition hover:border-blue-200 hover:bg-white"
+                  >
+                    <p className="text-xs font-bold text-slate-800">
                       {s.first_name} {s.last_name}
                     </p>
-                    <p className="mt-0.5 text-slate-500">{s.phone}</p>
+                    <p className="mt-0.5 text-[10px] text-slate-500">{s.phone}</p>
+                    <button
+                      type="button"
+                      onClick={() => removeFromGroup(s.id)}
+                      className="absolute right-2 top-2 rounded-md bg-white p-1 text-slate-400 opacity-0 shadow-sm transition hover:text-red-500 group-hover:opacity-100"
+                      title="Guruhdan o'chirish"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3 w-3"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 ))}
               {students.filter((s) => s.group_id === editingId).length === 0 && (
-                <p className="col-span-full text-xs text-slate-500">Bu guruhda faol o‘quvchilar yo‘q.</p>
+                <p className="col-span-full py-6 text-center text-xs text-slate-400">
+                  Bu guruhda faol o‘quvchilar yo‘q. Yuqoridagi qidiruv orqali qo'shishingiz mumkin.
+                </p>
               )}
             </div>
           </div>
