@@ -318,6 +318,24 @@ export async function updateGroup(
   revalidatePath("/kurslar");
 }
 
+export async function deleteGroup(id: string) {
+  const { supabase, user } = await requireAdmin();
+  const { error } = await supabase.from("groups").delete().eq("id", id);
+  if (error) throw new Error(error.message ?? "Guruhni o'chirib bo'lmadi");
+
+  await supabase.from("activity_logs").insert({
+    actor_id: user.id,
+    action: "group_delete",
+    entity_type: "group",
+    entity_id: id,
+    details: { id },
+  });
+
+  revalidatePath("/admin/guruhlar");
+  revalidatePath("/admin/dars-jadvali");
+  revalidatePath("/kurslar");
+}
+
 export async function saveCourse(id: string, patch: Record<string, unknown>) {
   const { supabase, user } = await requireAdmin();
   await supabase.from("courses").update(patch).eq("id", id);

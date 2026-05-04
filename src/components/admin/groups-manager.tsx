@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createGroup, updateGroup } from "@/lib/actions/crm";
+import { createGroup, updateGroup, deleteGroup } from "@/lib/actions/crm";
 import { formatDate } from "@/lib/format";
 import { parseTimeMap, formatTimeDisplay } from "@/lib/format-time";
 import type { Course, Group } from "@/lib/types";
@@ -18,6 +18,7 @@ export function GroupsManager({ groups, courses }: Props) {
   const [saving, setSaving] = useState(false);
   const [savingRowId, setSavingRowId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -125,6 +126,20 @@ export function GroupsManager({ groups, courses }: Props) {
       setError(err instanceof Error ? err.message : "Guruh saqlanmadi.");
     } finally {
       setSavingRowId(null);
+    }
+  }
+
+  async function onDeleteGroup(id: string) {
+    if (!confirm("Rostdan ham bu guruhni o'chirmoqchimisiz?")) return;
+    setDeletingId(id);
+    setError(null);
+    try {
+      await deleteGroup(id);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Guruh o'chirilmadi. (Guruhda o'quvchilar mavjud bo'lishi mumkin)");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -431,13 +446,23 @@ export function GroupsManager({ groups, courses }: Props) {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => startEdit(g)}
-                      className="rounded border border-slate-200 px-2 py-1 text-xs hover:bg-slate-50"
-                    >
-                      Tahrirlash
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => startEdit(g)}
+                        className="rounded border border-slate-200 px-2 py-1 text-xs hover:bg-slate-50"
+                      >
+                        Tahrirlash
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteGroup(g.id)}
+                        disabled={deletingId === g.id}
+                        className="rounded border border-red-200 text-red-600 px-2 py-1 text-xs hover:bg-red-50 disabled:opacity-60"
+                      >
+                        {deletingId === g.id ? "..." : "O'chirish"}
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>

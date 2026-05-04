@@ -13,6 +13,7 @@ type Props = {
   initialStudents: Student[];
   courses: Pick<Course, "id" | "name" | "price">[];
   groups: Pick<Group, "id" | "name" | "course_id">[];
+  attendedCounts: Record<string, number>;
 };
 
 function FormField({ label, children }: { label: string; children: ReactNode }) {
@@ -30,7 +31,7 @@ const statuses: { value: StudentStatus; label: string }[] = [
   { value: "paused", label: "Pauza" },
 ];
 
-export function StudentsTable({ initialStudents, courses, groups }: Props) {
+export function StudentsTable({ initialStudents, courses, groups, attendedCounts }: Props) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -371,6 +372,7 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
               <th className="px-4 py-3">To‘lov sanasi</th>
               <th className="px-4 py-3">Birinchi dars</th>
               <th className="px-4 py-3">Kunlar / Vaqt</th>
+              <th className="px-4 py-3">Dars (Kelgan)</th>
               <th className="px-4 py-3">Summa / to‘langan</th>
               <th className="px-4 py-3">Amal</th>
             </tr>
@@ -423,6 +425,11 @@ export function StudentsTable({ initialStudents, courses, groups }: Props) {
                   <td className="px-4 py-3 text-xs text-slate-600">
                     <div className="font-medium text-slate-800">{st.lesson_days?.join(", ") || "Kun yo'q"}</div>
                     <div>{formatTimeDisplay(st.lesson_time)}</div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-blue-100 px-1.5 text-xs font-medium text-blue-700">
+                      {attendedCounts[st.id] || 0}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-700">
                     <div>{formatUzs(Number(st.total_amount))}</div>
