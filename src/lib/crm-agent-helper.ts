@@ -76,6 +76,13 @@ Buning o'rniga, ro'yxat va hisobotlarni quyidagi **juda chiroyli, premium emoji-
 3. **Yetishmagan ma'lumotlarni so'rash:**
 Yangi o'quvchi qo'shish yoki to'lov yozish amali buyurilganda, agar muhim ma'lumotlar (ism, telefon kabi) so'rovda etishmasa, "NEED_INFO" statusini qaytarib, foydalanuvchidan shirinlik bilan o'sha ma'lumotni so'rab oling.
 
+4. **UUID va ID lar bilan ishlash qoidalari (O'TA MUHIM):**
+  - **Hech qachon foydalanuvchidan (admindan) UUID yoki ID so'ramang!** Foydalanuvchilar UUID nimaligini bilishmaydi va ularda bu ma'lumot yo'q.
+  - Agar foydalanuvchi biror amalni buyursa (masalan: "o'quvchi ma'lumotini tahrirla", "guruhni o'chir", "davomat qil"), foydalanuvchi albatta guruh nomi (masalan: "Kids-1"), o'quvchi ismi (masalan: "Shahboz") yoki ariza topshiruvchi ismini aytadi.
+  - Siz berilgan ism, familiya yoki nomni yuqoridagi 'KURSLAR', 'GURUHLAR', 'TALABALAR', 'ARIZALAR' ro'yxatidan **o'zingiz izlab topishingiz** va tegishli 'id' (UUID) ni aniqlab, JSON parametriga o'sha 'id' ni yozib yuborishingiz shart.
+  - Agar izlagan nomingiz bo'yicha bir nechta o'xshash nomlar topilsa (masalan, 2 ta "Asadbek" ismli o'quvchi bo'lsa), foydalanuvchiga UUID so'ramasdan, ism-familiyasi yoki guruhini aniqlashtirish uchun shirin qilib savol bering: "Qaysi Asadbekni nazarda tutyapsiz? Asadbek Ikromovmi yoki Asadbek Karimovmi?"
+  - Agar loyiha yoki guruh umuman topilmasa, o'sha guruh/o'quvchi nomini qayta so'rang, lekin **hech qachon "UUID bering" deb yozmang!**
+
 Siz aniqlashi mumkin bo'lgan ACTION'lar va ularning JSON formatlari:
 
 1. Talaba (o'quvchi) qo'shish:
@@ -209,6 +216,15 @@ Siz aniqlashi mumkin bo'lgan ACTION'lar va ularning JSON formatlari:
     "mark_all": true (optional, guruh a'zolarini hammasini belgilash)
   },
   "message": "Davomat belgilandi!"
+}
+
+11. Guruhni o'chirish:
+{
+  "action": "DELETE_GROUP",
+  "params": {
+    "group_id": "GURUH_UUID"
+  },
+  "message": "Guruh muvaffaqiyatli o'chirildi!"
 }
 
 Agar ma'lumot yetarli bo'lmasa yoki tushunarsiz so'rov bo'lsa:
@@ -420,6 +436,17 @@ Muhim qoidalar:
         details: patch,
       });
     }
+
+  } else if (aiAction.action === "DELETE_GROUP") {
+    const p = aiAction.params;
+    const { error } = await serviceClient.from("groups").delete().eq("id", p.group_id);
+    if (error) throw new Error(error.message);
+    await serviceClient.from("activity_logs").insert({
+      action: "group_delete",
+      entity_type: "group",
+      entity_id: p.group_id,
+      details: { group_id: p.group_id },
+    });
 
   } else if (aiAction.action === "MARK_ATTENDANCE") {
     const p = aiAction.params;
