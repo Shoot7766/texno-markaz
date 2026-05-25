@@ -106,7 +106,6 @@ export async function POST(request: NextRequest) {
         const fileObj = new File([voiceBuffer], "voice.ogg", { type: "audio/ogg" });
         formData.append("file", fileObj);
         formData.append("model", "whisper-1");
-        formData.append("language", "uz");
 
         const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
           method: "POST",
