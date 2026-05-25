@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = "https://oghuyltmzzkaubmmezeb.supabase.co";
 const supabaseKey =
@@ -6,4 +7,14 @@ const supabaseKey =
 
 export function createClient() {
   return createBrowserClient(supabaseUrl, supabaseKey);
+}
+
+export function createCleanPublicClient() {
+  return createSupabaseClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }

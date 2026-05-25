@@ -40,7 +40,7 @@ import {
   AlertTriangle,
   Database,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, createCleanPublicClient } from "@/lib/supabase/client";
 
 // =========================================================
 // 1. DATA SEEDING (6 IT Fields Curriculum Tracks & Quizzes)
@@ -2050,7 +2050,7 @@ export default function UltimateCyberTechPage() {
   // Fetch dynamic quizzes
   async function loadDatabaseQuizzes() {
     try {
-      const supabase = createClient();
+      const supabase = createCleanPublicClient();
       const { data, error } = await supabase.from("ct_quizzes").select("*, ct_questions(*)");
       if (!error && data) {
         console.log("Supabase dynamic quizzes successfully loaded:", data.length);
@@ -2706,7 +2706,7 @@ export default function UltimateCyberTechPage() {
   const fetchDbRankings = async () => {
     try {
       setDbRankingsLoading(true);
-      const supabase = createClient();
+      const supabase = createCleanPublicClient();
       const { data, error } = await supabase
         .from("ct_leaderboard")
         .select("*")
