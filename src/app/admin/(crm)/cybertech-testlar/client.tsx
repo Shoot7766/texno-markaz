@@ -4,10 +4,10 @@ import { useState, useTransition, useCallback } from "react";
 import {
   Plus, Trash2, Check, AlertCircle, Loader2, ChevronDown,
   ChevronUp, BookOpen, ListCheck, Clock, Tag, Eye, EyeOff,
-  Terminal, Shield, Cpu, Brain, Monitor, Lock
+  Terminal, Shield, Cpu, Brain, Monitor, Lock, Pencil
 } from "lucide-react";
 import {
-  createQuiz, deleteQuiz, deleteQuestion, addQuestionToQuiz,
+  createQuiz, deleteQuiz, deleteQuestion, addQuestionToQuiz, updateQuizMeta,
   type QuestionInput, type QuizInput,
 } from "./actions";
 
@@ -71,6 +71,9 @@ export function CyberTestsClient({ initialQuizzes, dbError }: Props) {
   const [showCreate, setShowCreate]   = useState(false);
   const [expandedId, setExpandedId]   = useState<string | null>(null);
   const [addQForId, setAddQForId]     = useState<string | null>(null);
+
+  const [editingQuiz, setEditingQuiz] = useState<DbQuiz | null>(null);
+  const [editMeta, setEditMeta] = useState<QuizInput>({ title: "", category: "", timeLimit: 120 });
 
   // ── Create quiz form state ──────────────────────────────────────────────────
   const [quizMeta, setQuizMeta] = useState<QuizInput>({
@@ -378,6 +381,14 @@ export function CyberTestsClient({ initialQuizzes, dbError }: Props) {
                 onToggle={() => setExpandedId(expandedId === quiz.id ? null : quiz.id)}
                 onDelete={() => handleDeleteQuiz(quiz.id)}
                 onDeleteQuestion={(qId) => handleDeleteQuestion(quiz.id, qId)}
+                onEdit={() => {
+                  setEditingQuiz(quiz);
+                  setEditMeta({
+                    title: quiz.title,
+                    category: quiz.category,
+                    timeLimit: quiz.time_limit
+                  });
+                }}
                 showAddQ={addQForId === quiz.id}
                 onToggleAddQ={() => {
                   setAddQForId(addQForId === quiz.id ? null : quiz.id);
@@ -392,6 +403,93 @@ export function CyberTestsClient({ initialQuizzes, dbError }: Props) {
           </div>
         )}
       </div>
+
+      {/* ── Edit Quiz Meta Modal ── */}
+      {editingQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 animate-fade-in">
+          <div className="rounded-2xl bg-white p-6 shadow-xl max-w-md w-full space-y-4 animate-success-pop">
+            <h3 className="text-lg font-bold text-slate-900">Test ma&apos;lumotlarini tahrirlash</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">
+                  Test nomi
+                </label>
+                <input
+                  type="text"
+                  value={editMeta.title}
+                  onChange={(e) => setEditMeta({ ...editMeta, title: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 p-2.5 text-sm"
+                  placeholder="Test nomi"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">
+                  Kategoriya
+                </label>
+                <select
+                  value={editMeta.category}
+                  onChange={(e) => setEditMeta({ ...editMeta, category: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 p-2.5 text-sm"
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c.label} value={c.label}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">
+                  Vaqt limiti (soniya)
+                </label>
+                <input
+                  type="number"
+                  value={editMeta.timeLimit}
+                  onChange={(e) => setEditMeta({ ...editMeta, timeLimit: Number(e.target.value) })}
+                  className="w-full rounded-lg border border-slate-200 p-2.5 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingQuiz(null)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+              >
+                Bekor
+              </button>
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={async () => {
+                  startTransition(async () => {
+                    const res = await updateQuizMeta(editingQuiz.id, editMeta);
+                    if (res.error) {
+                      alert(res.error);
+                    } else {
+                      setQuizzes((prev) =>
+                        prev.map((q) =>
+                          q.id === editingQuiz.id
+                            ? { ...q, title: editMeta.title, category: editMeta.category, time_limit: editMeta.timeLimit }
+                            : q
+                        )
+                      );
+                      setEditingQuiz(null);
+                    }
+                  });
+                }}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Saqlash"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -404,6 +502,7 @@ interface QuizRowProps {
   isExpanded: boolean;
   onToggle: () => void;
   onDelete: () => void;
+  onEdit: () => void;
   onDeleteQuestion: (qId: string) => void;
   showAddQ: boolean;
   onToggleAddQ: () => void;
@@ -413,7 +512,7 @@ interface QuizRowProps {
   isPending: boolean;
 }
 function QuizRow({
-  quiz, isExpanded, onToggle, onDelete, onDeleteQuestion,
+  quiz, isExpanded, onToggle, onDelete, onEdit, onDeleteQuestion,
   showAddQ, onToggleAddQ, inlineQ, setInlineQ, onAddQuestion, isPending,
 }: QuizRowProps) {
   const catColor = CATEGORY_COLORS[quiz.category] ?? "bg-slate-100 text-slate-700 border-slate-200";
@@ -451,13 +550,19 @@ function QuizRow({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onToggleAddQ}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-lg px-3 py-1.5 transition"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-lg px-3.5 py-1.5 transition"
           >
             <Plus className="h-3.5 w-3.5" /> Savol qo&apos;sh
           </button>
           <button
+            onClick={onEdit}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 hover:text-amber-800 border border-amber-200 bg-amber-50 hover:bg-amber-100 rounded-lg px-3.5 py-1.5 transition"
+          >
+            <Pencil className="h-3.5 w-3.5" /> Tahrirla
+          </button>
+          <button
             onClick={onDelete}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-700 border border-rose-100 hover:bg-rose-50 rounded-lg px-3 py-1.5 transition"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-700 border border-rose-100 hover:bg-rose-50 rounded-lg px-3.5 py-1.5 transition"
           >
             <Trash2 className="h-3.5 w-3.5" /> O&apos;chirish
           </button>
