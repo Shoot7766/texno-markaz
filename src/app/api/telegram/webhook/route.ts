@@ -7,7 +7,7 @@ async function sendTelegramMessage(chatId: string, text: string) {
   if (!botToken) return;
 
   try {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -16,6 +16,18 @@ async function sendTelegramMessage(chatId: string, text: string) {
         parse_mode: "Markdown"
       })
     });
+
+    if (!res.ok) {
+      // Telegram Markdown parselash xatosi bo'lsa, oddiy matn shaklida qayta yuborish
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: text
+        })
+      });
+    }
   } catch (err) {
     console.error("sendTelegramMessage error:", err);
   }
