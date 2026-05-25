@@ -13,6 +13,8 @@ const links = [
   { href: "/admin/paketlar", label: "Paketlar" },
   { href: "/admin/sozlamalar", label: "Sozlamalar" },
   { href: "/admin/journal", label: "Jurnal" },
+  { href: "/admin/cybertech-testlar", label: "CT Testlar" },
+  { href: "/admin/cybertech-testlar/ai-generator", label: "✦ AI Test Generator" },
 ];
 
 export function AdminNav() {

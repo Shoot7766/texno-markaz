@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -9,11 +9,14 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Texno Markaz — 0 dan IT kasb o‘rgan",
-    template: "%s | Texno Markaz",
+    default: "Cyber Tech Academy — 0 dan IT kasb o‘rgan",
+    template: "%s | Cyber Tech Academy",
   },
   description:
     "Amaliy darslar, ishga yordam, AI bilan o‘qitish. Kompyuter savodxonligi, dizayn, web va AI kurslari.",
+};
+
+export const viewport: Viewport = {
   themeColor: "#0B0F1A",
 };
 

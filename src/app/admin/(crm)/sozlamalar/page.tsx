@@ -18,7 +18,7 @@ export default async function SozlamalarPage() {
       <SettingsForm
         settings={
           (settings ?? {
-            center_name: "Texno Markaz",
+            center_name: "Cyber Tech Academy",
             phone: "",
             telegram: "",
             instagram: "",

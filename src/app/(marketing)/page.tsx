@@ -86,51 +86,55 @@ export default async function HomePage() {
     <div className="overflow-hidden">
       {/* Asosiy: Bepul dars */}
       <section className="relative px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-12">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(0,209,255,0.18),transparent)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_0%,rgba(108,99,255,0.15),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(57,255,20,0.06),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_0%,rgba(0,209,255,0.05),transparent)]" />
 
         <div className="relative mx-auto max-w-5xl">
-          <div className="relative overflow-hidden rounded-3xl p-[1px] tm-hero-border">
-            <div className="relative rounded-3xl bg-[#0d1324]/95 px-6 py-12 sm:px-10 sm:py-16 tm-ring-glow tm-glow">
-              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#00D1FF]/10 blur-3xl animate-glow-pulse" />
-              <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-[#6C63FF]/15 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl p-[1px] tm-hero-border shadow-[0_0_40px_rgba(57,255,20,0.05)]">
+            <div className="relative rounded-3xl bg-[#05070c]/90 px-6 py-12 sm:px-10 sm:py-16 border border-[#39ff14]/20 backdrop-blur-xl">
+              
+              {/* Digital scanner grids */}
+              <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-[#39ff14]" />
+              <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-[#39ff14]" />
+              <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-[#39ff14]" />
+              <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-[#39ff14]" />
 
-              <p className="inline-flex items-center gap-2 rounded-full border border-[#00D1FF]/30 bg-[#00D1FF]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#00D1FF]">
-                <Zap className="h-3.5 w-3.5" />
-                Cheklangan joylar
+              <p className="inline-flex items-center gap-2 rounded-full border border-[#39ff14]/30 bg-[#39ff14]/5 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-widest text-[#39ff14] shadow-[0_0_15px_rgba(57,255,20,0.1)]">
+                <Zap className="h-3.5 w-3.5 animate-pulse" />
+                SYSTEM ACCESS // ACTIVE
               </p>
 
-              <h1 className="mt-6 max-w-4xl text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl">
-                <span className="bg-gradient-to-r from-[#00D1FF] via-white to-[#6C63FF] bg-clip-text text-transparent">
+              <h1 className="mt-6 max-w-4xl text-4xl font-black leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl font-mono uppercase">
+                <span className="bg-gradient-to-r from-[#39ff14] via-white to-[#00D1FF] bg-clip-text text-transparent cyber-glitch-text">
                   Birinchi dars — BEPUL!
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-2xl text-lg text-slate-400 sm:text-xl">
-                IT va kompyuter yo‘nalishlarida ilk darsingizni bepul boshlang. Mentorlar, zamonaviy dasturlar va
-                amaliy mashg‘ulotlar — xavfsiz sinov, keyin qaror.
+              <p className="mt-6 max-w-2xl text-sm font-mono text-slate-400 sm:text-base leading-relaxed">
+                // Kiberxavfsizlik va zamonaviy IT yo‘nalishlarida ilk darsingizni mutlaqo bepul boshlang. 
+                Haqiqiy xakerlik sandbox simulyatorlari, professional o‘quv mentorlari va xavfsiz laboratoriya muhiti sizni kutmoqda.
               </p>
 
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-slate-300">
-                  <Clock className="h-4 w-4 text-[#6C63FF]" />
-                  Joylar soni cheklangan
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-1.5 text-slate-300 font-mono">
+                  <Clock className="h-4 w-4 text-[#00D1FF]" />
+                  &gt;_ JOYLAR SONI CHEKLANGAN
                 </span>
               </div>
 
-              <div className="mt-10 flex flex-wrap gap-4">
+              <div className="mt-10 flex flex-wrap gap-4 font-mono">
                 <Link
                   href="/ariza?free=1"
-                  className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#00D1FF] to-[#6C63FF] px-8 py-4 text-base font-bold text-[#0B0F1A] shadow-xl shadow-cyan-500/25 transition hover:brightness-110"
+                  className="group inline-flex items-center gap-2 rounded-xl bg-[#39ff14] px-8 py-4 text-sm font-black text-black uppercase tracking-wider transition hover:brightness-110 shadow-lg shadow-[#39ff14]/25"
                 >
-                  Bepul darsga yozilish
+                  Bepul darsga kirish
                   <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" />
                 </Link>
                 <Link
                   href="/kurslar"
-                  className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-6 py-4 text-sm font-semibold text-slate-200 backdrop-blur transition hover:border-[#00D1FF]/40 hover:bg-white/10"
+                  className="inline-flex items-center rounded-xl border border-[#39ff14]/30 bg-black/40 px-6 py-4 text-sm font-bold text-[#39ff14] uppercase tracking-wider backdrop-blur transition hover:bg-[#39ff14]/10"
                 >
-                  Kurslarni ko‘rish
+                  &gt;_ Kurslar arxivi
                 </Link>
               </div>
             </div>
@@ -140,8 +144,9 @@ export default async function HomePage() {
 
       {/* Qisqa yo‘nalishlar */}
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <h2 className="text-center text-sm font-semibold uppercase tracking-widest text-[#6C63FF]">
-          Mashhur yo‘nalishlar
+        <h2 className="text-center text-xs font-mono font-bold uppercase tracking-[0.25em] text-[#00D1FF] flex items-center justify-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#00D1FF] animate-ping" />
+          Kiber Modullar Arxivi
         </h2>
         <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {FEATURED_SLUGS.map(({ slug, label, Icon }) => {
@@ -151,132 +156,154 @@ export default async function HomePage() {
               <Link
                 key={slug}
                 href={href}
-                className="group flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-[#00D1FF]/35 hover:shadow-lg hover:shadow-cyan-500/10"
+                className="group relative flex flex-col rounded-xl border border-white/5 bg-black/60 p-5 transition hover:border-[#39ff14]/40 hover:shadow-lg hover:shadow-[#39ff14]/5 font-mono"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#00D1FF]/20 to-[#6C63FF]/20 text-[#00D1FF] transition group-hover:from-[#00D1FF]/30 group-hover:to-[#6C63FF]/30">
+                <div className="absolute top-0 right-0 h-1.5 w-1.5 border-t border-r border-[#39ff14]/20 group-hover:border-[#39ff14]" />
+                <div className="absolute bottom-0 left-0 h-1.5 w-1.5 border-b border-l border-[#39ff14]/20 group-hover:border-[#39ff14]" />
+                
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#39ff14]/10 to-[#00D1FF]/10 border border-[#39ff14]/20 text-[#39ff14] transition group-hover:bg-[#39ff14]/20">
                   <Icon className="h-5 w-5" />
                 </div>
-                <p className="mt-4 font-semibold text-white">{c?.name ?? label}</p>
-                <p className="mt-1 text-xs text-slate-500">Batafsil →</p>
+                <p className="mt-4 font-bold text-white text-xs leading-snug group-hover:text-[#39ff14] transition">{c?.name ?? label}</p>
+                <p className="mt-2 text-[10px] text-slate-500 font-bold uppercase tracking-wider">&gt;_ Yuklash...</p>
               </Link>
             );
           })}
         </div>
       </section>
 
+      {/* Nega biz Section */}
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <h2 className="text-center text-2xl font-bold text-white">Nega biz?</h2>
+        <h2 className="text-center text-xl font-mono font-bold uppercase tracking-wider text-white flex items-center justify-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-[#39ff14] animate-pulse" />
+          Terminal Xarakteristikalari
+        </h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {[
             {
-              title: "Amaliy darslar",
-              desc: "Har dars — mashg‘ulot va vazifalar, real vaziyatlar.",
+              title: "Amaliy Sandbox Laboratoriyasi",
+              desc: "Har bir nazariy dars uchun in-browser xavfsiz sandbox muhiti, kod terminallari va amaliy vazifalar.",
               icon: Cpu,
             },
             {
-              title: "Ishga yordam",
-              desc: "Rezyume, portfolio va suhbatga tayyorlash.",
+              title: "Ishga Joylashish Protokoli",
+              desc: "Bitiruvchilarni portfoliolarini tayyorlash, mock suhbatlardan o'tkazish va hamkor kompaniyalarga taqdim etish.",
               icon: Briefcase,
             },
             {
-              title: "AI bilan o‘qitish",
-              desc: "Zamonaviy vositalar va avtomatlashtirish.",
+              title: "Sun'iy Intellekt Integratsiyasi",
+              desc: "Darslarni o'zlashtirishda AI-kiber mentor tizimi bilan real vaqtda maslahatlashish va kod tahlili.",
               icon: Sparkles,
             },
           ].map((item) => (
             <div
               key={item.title}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 tm-ring-glow transition hover:border-[#00D1FF]/25"
+              className="relative rounded-2xl border border-white/5 bg-black/45 p-6 font-mono group hover:border-[#39ff14]/30 transition duration-300"
             >
-              <item.icon className="h-8 w-8 text-[#00D1FF]" />
-              <h3 className="mt-4 font-semibold text-white">{item.title}</h3>
-              <p className="mt-2 text-sm text-slate-400">{item.desc}</p>
+              <div className="absolute top-0 right-0 h-2 w-2 border-t border-r border-[#39ff14]/20 group-hover:border-[#39ff14]" />
+              <div className="absolute bottom-0 left-0 h-2 w-2 border-b border-l border-[#39ff14]/20 group-hover:border-[#39ff14]" />
+
+              <item.icon className="h-8 w-8 text-[#00D1FF] group-hover:text-[#39ff14] transition duration-300" />
+              <h3 className="mt-4 font-bold text-white text-sm uppercase tracking-wide">{item.title}</h3>
+              <p className="mt-2 text-xs text-slate-400 leading-relaxed font-light">{item.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="border-y border-white/10 bg-[#080d18]/80 py-14">
+      {/* Raqamlarda - diagnostics stats */}
+      <section className="border-y border-[#39ff14]/15 bg-[#05070c]/90 py-14 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-center text-2xl font-bold text-white">Raqamlarda</h2>
-          <p className="mx-auto mt-2 max-w-lg text-center text-sm text-slate-500">
-            Admin panel orqali yangilanadi (Sozlamalar → Bosh sahifa statistikasi).
+          <h2 className="text-center text-xl font-mono font-bold uppercase tracking-wider text-white">
+            Tizim Statistikasi & Data Paketlari
+          </h2>
+          <p className="mx-auto mt-2 max-w-lg text-center text-xs font-mono text-slate-500">
+            [STATUS: UPDATED // DB SECURE CONNECTION ESTABLISHED]
           </p>
-          <div className="mt-10 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
-            <div className="text-center">
-              <FileText className="mx-auto h-8 w-8 text-[#00D1FF]" />
-              <p className="mt-3 text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                {stats?.applications_count ?? "—"}
+          <div className="mt-10 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5 font-mono">
+            <div className="text-center p-4 border border-white/5 bg-black/45 rounded-xl">
+              <FileText className="mx-auto h-7 w-7 text-[#00D1FF]" />
+              <p className="mt-3 text-xl font-black tabular-nums text-white sm:text-2xl tracking-wide">
+                {stats?.applications_count ?? "0"}
               </p>
-              <p className="text-xs text-slate-500 sm:text-sm">Arizalar</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">Arizalar.LOG</p>
             </div>
-            <div className="text-center">
-              <Users className="mx-auto h-8 w-8 text-[#6C63FF]" />
-              <p className="mt-3 text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                {stats?.active_students_count ?? "—"}
+            <div className="text-center p-4 border border-white/5 bg-black/45 rounded-xl">
+              <Users className="mx-auto h-7 w-7 text-[#39ff14]" />
+              <p className="mt-3 text-xl font-black tabular-nums text-[#39ff14] sm:text-2xl tracking-wide">
+                {stats?.active_students_count ?? "0"}
               </p>
-              <p className="text-xs text-slate-500 sm:text-sm">Faol o‘quvchilar</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">Students.SYS</p>
             </div>
-            <div className="text-center">
-              <UserCircle className="mx-auto h-8 w-8 text-[#00D1FF]" />
-              <p className="mt-3 text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                {stats?.students_count ?? "—"}
+            <div className="text-center p-4 border border-white/5 bg-black/45 rounded-xl">
+              <UserCircle className="mx-auto h-7 w-7 text-[#00D1FF]" />
+              <p className="mt-3 text-xl font-black tabular-nums text-white sm:text-2xl tracking-wide">
+                {stats?.students_count ?? "0"}
               </p>
-              <p className="text-xs text-slate-500 sm:text-sm">Jami o‘quvchilar</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">TOTAL_USERS.DB</p>
             </div>
-            <div className="text-center">
-              <GraduationCap className="mx-auto h-8 w-8 text-emerald-400" />
-              <p className="mt-3 text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                {stats?.graduated_count ?? "—"}
+            <div className="text-center p-4 border border-white/5 bg-black/45 rounded-xl">
+              <GraduationCap className="mx-auto h-7 w-7 text-emerald-400" />
+              <p className="mt-3 text-xl font-black tabular-nums text-emerald-400 sm:text-2xl tracking-wide">
+                {stats?.graduated_count ?? "0"}
               </p>
-              <p className="text-xs text-slate-500 sm:text-sm">Bitirganlar</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">GRADUATED.BIN</p>
             </div>
-            <div className="text-center">
-              <Briefcase className="mx-auto h-8 w-8 text-violet-400" />
-              <p className="mt-3 text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                {stats?.employed_count ?? "—"}
+            <div className="text-center p-4 border border-white/5 bg-black/45 rounded-xl">
+              <Briefcase className="mx-auto h-7 w-7 text-violet-400" />
+              <p className="mt-3 text-xl font-black tabular-nums text-violet-400 sm:text-2xl tracking-wide">
+                {stats?.employed_count ?? "0"}
               </p>
-              <p className="text-xs text-slate-500 sm:text-sm">Ishga joylashganlar</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">EMPLOYED.DAT</p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Kurslar Arxivi list */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white">0 dan IT kasb o‘rgan</h2>
-            <p className="mt-1 text-sm text-slate-500">Tanlangan kurslar</p>
+            <h2 className="text-xl font-mono font-bold uppercase tracking-wider text-white flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#39ff14] animate-pulse" />
+              0 dan IT kasb o‘rgan
+            </h2>
+            <p className="mt-1 text-xs font-mono text-slate-500">// FAOL O&apos;QUV KURS NODELARI</p>
           </div>
-          <Link href="/kurslar" className="text-sm font-medium text-[#00D1FF] transition hover:text-[#6C63FF]">
-            Barchasi
+          <Link href="/kurslar" className="text-xs font-mono font-bold uppercase text-[#00D1FF] transition hover:text-[#39ff14]">
+            &gt;_ Barcha modullar
           </Link>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {courses.length === 0 ? (
-            <p className="col-span-full text-sm text-slate-500">
-              Ma&apos;lumotlar bazasiga ulaning — kurslar shu yerda chiqadi.
+            <p className="col-span-full text-xs font-mono text-slate-500">
+              // Ma&apos;lumotlar bazasiga ulaning kutilmoqda...
             </p>
           ) : (
             courses.slice(0, 6).map((c) => (
               <article
                 key={c.id}
-                className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-[#00D1FF]/30"
-                style={{ borderTopWidth: 3, borderTopColor: c.color ?? "#00D1FF" }}
+                className="cyber-card flex flex-col p-5 group font-mono"
+                style={{ borderTopWidth: 3, borderTopColor: c.color ?? "#39ff14" }}
               >
-                <h3 className="font-semibold text-white">
-                  <Link href={`/kurslar/${c.slug}`} className="transition hover:text-[#00D1FF]">
+                <div className="absolute top-0 right-0 h-2 w-2 border-t border-r border-[#39ff14]/30 group-hover:border-[#39ff14]" />
+                <div className="absolute bottom-0 left-0 h-2 w-2 border-b border-l border-[#39ff14]/30 group-hover:border-[#39ff14]" />
+                
+                <h3 className="font-mono font-bold text-white group-hover:text-[#39ff14] transition">
+                  <Link href={`/kurslar/${c.slug}`} className="transition">
                     {c.name}
                   </Link>
                 </h3>
-                <p className="mt-2 line-clamp-3 flex-1 text-sm text-slate-400">{c.description}</p>
-                <p className="mt-4 text-sm font-semibold text-[#00D1FF]">{formatUzs(Number(c.price))}</p>
-                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm font-medium">
-                  <Link href={`/kurslar/${c.slug}`} className="text-slate-400 hover:text-white">
-                    Batafsil
+                <p className="mt-2 line-clamp-3 flex-1 text-xs text-slate-400 font-mono leading-relaxed">{c.description}</p>
+                <p className="mt-4 text-xs font-mono font-black text-[#39ff14] tracking-wider uppercase">
+                  {formatUzs(Number(c.price))}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs font-mono font-bold">
+                  <Link href={`/kurslar/${c.slug}`} className="text-slate-400 hover:text-white transition">
+                    &gt;_ Batafsil
                   </Link>
-                  <Link href="/ariza" className="text-[#6C63FF] hover:text-[#00D1FF]">
-                    Ariza
+                  <Link href="/ariza" className="text-[#00D1FF] hover:text-[#39ff14] transition">
+                    &gt;_ Ariza
                   </Link>
                 </div>
               </article>
@@ -285,45 +312,49 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Weekly Schedule Grid */}
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white">Dars jadvali</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Guruhlar jadvalini kunlar bo‘yicha ko‘rish (faqat ko‘rish rejimi).
+            <h2 className="text-xl font-mono font-bold uppercase tracking-wider text-white flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#39ff14] animate-pulse" />
+              Dars jadvali
+            </h2>
+            <p className="mt-1 text-xs font-mono text-slate-500">
+              // TERMINAL NODELARIDAGI HAFTALIK FAQAT KO&apos;RISH REJIMIDAGI JADVAL
             </p>
           </div>
-          <Link href="/dars-jadvali" className="text-sm font-medium text-[#00D1FF] transition hover:text-[#6C63FF]">
-            To‘liq jadval
+          <Link href="/dars-jadvali" className="text-xs font-mono font-bold uppercase text-[#00D1FF] transition hover:text-[#39ff14]">
+            &gt;_ To‘liq jadval.LOG
           </Link>
         </div>
-        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+        <div className="mt-6 rounded-2xl border border-[#39ff14]/15 bg-black/60 p-4 backdrop-blur-xl">
           <div className="grid gap-3 lg:grid-cols-7">
-          {WEEKDAY_SHORT_UZ.map((day) => (
-            <section key={day} className="rounded-xl border border-white/10 bg-[#0f1528]/70 p-2.5">
-              <h3 className="rounded-md bg-white/5 px-2 py-1 text-center text-[11px] font-semibold uppercase text-[#00D1FF]">
+          {WEEKDAY_SHORT_UZ.map((day: string) => (
+            <section key={day} className="rounded-xl border border-white/5 bg-[#05070c]/70 p-2.5 font-mono">
+              <h3 className="rounded-md bg-[#39ff14]/10 border border-[#39ff14]/20 px-2 py-1 text-center text-[10px] font-mono font-black uppercase text-[#39ff14]">
                 {day}
               </h3>
               <div className="mt-3 space-y-2">
-                {(groupsByDay[day] ?? []).map((g) => {
+                {(groupsByDay[day] ?? []).map((g: any) => {
                   const course = courses.find((c) => c.id === g.course_id);
                   const scheduleLine = getTimeForDay(g.schedule_time, day) || g.schedule || "Vaqt kiritilmagan";
                   return (
                     <div
                       key={`${day}-${g.id}`}
-                      className="rounded-lg border border-white/10 bg-[#111a30] p-2"
+                      className="rounded-lg border border-white/5 bg-[#05070c]/90 p-2 relative group hover:border-[#39ff14]/30 transition duration-300"
                     >
-                      <p className="text-xs font-semibold text-white">{g.name}</p>
-                      <p className="mt-0.5 text-[11px] text-slate-500">
+                      <p className="text-xs font-mono font-bold text-white leading-tight">{g.name}</p>
+                      <p className="mt-0.5 text-[10px] text-slate-500 font-mono truncate">
                         {course?.name ?? "Yo‘nalish belgilanmagan"}
                       </p>
-                      <p className="mt-1 text-[11px] text-emerald-300">{scheduleLine}</p>
+                      <p className="mt-1 text-[10px] text-[#00D1FF] font-mono font-bold">{scheduleLine}</p>
                     </div>
                   );
                 })}
                 {(groupsByDay[day] ?? []).length === 0 && (
-                  <p className="rounded-lg border border-dashed border-white/10 px-2 py-4 text-center text-xs text-slate-500">
-                    Dars yo‘q
+                  <p className="rounded-lg border border-dashed border-white/5 px-2 py-4 text-center text-[10px] text-slate-600 font-mono uppercase">
+                    Null node
                   </p>
                 )}
               </div>
@@ -333,25 +364,28 @@ export default async function HomePage() {
         </div>
 
         {groupsWithoutDays.length > 0 && (
-          <div className="mt-6 rounded-2xl border border-amber-500/25 bg-amber-500/[0.06] p-4">
-            <h3 className="text-sm font-semibold text-amber-200/90">Kunlar belgilanmagan</h3>
-            <p className="mt-1 text-xs text-slate-400">
-              Bu guruhlar hafta ustunlarida emas — jadvalni matn yoki admin panel orqali har hafta moslashtirasiz.
+          <div className="mt-6 rounded-2xl border border-amber-500/25 bg-amber-500/[0.04] p-4 font-mono">
+            <h3 className="text-xs font-mono font-black uppercase tracking-wider text-amber-200/90 flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+              UNASSIGNED_KUNLAR_LIST
+            </h3>
+            <p className="mt-1 text-[10px] text-slate-500 leading-normal">
+              // Bu guruhlar hafta ustunlarida emas — jadvalni matn yoki admin panel orqali har hafta moslashtirasiz.
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {groupsWithoutDays.map((g) => {
+              {groupsWithoutDays.map((g: any) => {
                 const course = courses.find((c) => c.id === g.course_id);
                 const scheduleLine = formatTimeDisplay(g.schedule_time) || g.schedule || "Vaqt kiritilmagan";
                 return (
                   <div
                     key={g.id}
-                    className="rounded-lg border border-white/10 bg-[#111a30] p-2"
+                    className="rounded-lg border border-white/5 bg-[#05070c]/90 p-2 relative hover:border-amber-500/35 transition"
                   >
-                    <p className="text-xs font-semibold text-white">{g.name}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-500">
+                    <p className="text-xs font-semibold text-white leading-tight">{g.name}</p>
+                    <p className="mt-0.5 text-[10px] text-slate-500">
                       {course?.name ?? "Yo‘nalish belgilanmagan"}
                     </p>
-                    <p className="mt-1 text-[11px] text-emerald-300">{scheduleLine}</p>
+                    <p className="mt-1 text-[10px] text-amber-400">{scheduleLine}</p>
                   </div>
                 );
               })}

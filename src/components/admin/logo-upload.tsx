@@ -73,7 +73,7 @@ export function LogoUpload({ currentUrl }: Props) {
               className="max-h-12 w-auto object-contain"
             />
           ) : (
-            <span className="text-sm font-semibold text-slate-400">Texno Markaz</span>
+            <span className="text-sm font-semibold text-slate-400">Cyber Tech Academy</span>
           )}
         </div>
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">

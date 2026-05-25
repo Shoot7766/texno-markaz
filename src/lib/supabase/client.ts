@@ -1,8 +1,9 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co';
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key';
+  // Hardcoded public credentials to bypass Next.js build-time env injection issues
+  const supabaseUrl = 'https://oghuyltmzzkaubmmezeb.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9naHV5bHRtenprYXVibW1lemViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzQ3NTMsImV4cCI6MjA5MDYxMDc1M30.f9bUoJcV9GHX-ri_9RNmT30Wz952tmGT074gP8JOr2A';
   
-  return createBrowserClient(supabaseUrl, supabaseKey)
+  return createSupabaseClient(supabaseUrl, supabaseKey)
 }

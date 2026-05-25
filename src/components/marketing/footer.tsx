@@ -17,72 +17,87 @@ export function MarketingFooter({
   logoUrl?: string | null;
 }) {
   return (
-    <footer className="border-t border-white/10 bg-[#080c14]">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
-        <div>
+    <footer className="border-t border-[#39ff14]/15 bg-[#05070c]/95 backdrop-blur-xl">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
+        
+        {/* Column 1: Brand & Contact */}
+        <div className="font-mono text-xs">
           <BrandLogo logoUrl={logoUrl} centerName={centerName} size="sm" className="mb-4" />
-          <p className="text-sm font-semibold text-slate-200">Aloqa</p>
-          <p className="mt-2 text-sm text-slate-400">{phone}</p>
-          <p className="mt-1 text-sm text-slate-400">{address}</p>
+          <p className="font-bold text-white uppercase tracking-wider mt-4">&gt;_ Aloqa</p>
+          <p className="mt-2 text-slate-400 font-mono leading-relaxed">{phone}</p>
+          <p className="mt-1 text-slate-400 font-mono leading-relaxed">{address}</p>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-slate-200">Ijtimoiy tarmoqlar</p>
-          <ul className="mt-2 space-y-1 text-sm">
+
+        {/* Column 2: Social Networks */}
+        <div className="font-mono text-xs">
+          <p className="font-bold text-white uppercase tracking-wider">&gt;_ Ijtimoiy tarmoqlar</p>
+          <ul className="mt-3 space-y-2 font-bold uppercase tracking-wider text-[10px]">
             <li>
               <a
                 href={telegram}
-                className="text-[#00D1FF] transition hover:text-[#6C63FF]"
+                className="text-[#39ff14] hover:text-[#00D1FF] transition duration-300"
                 target="_blank"
                 rel="noreferrer"
               >
-                Telegram
+                Telegram.CHANNEL
               </a>
             </li>
             <li>
               <a
                 href={instagram}
-                className="text-[#00D1FF] transition hover:text-[#6C63FF]"
+                className="text-[#39ff14] hover:text-[#00D1FF] transition duration-300"
                 target="_blank"
                 rel="noreferrer"
               >
-                Instagram
+                Instagram.FEED
               </a>
             </li>
           </ul>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-slate-200">Tezkor havolalar</p>
-          <ul className="mt-2 space-y-1 text-sm text-slate-400">
+
+        {/* Column 3: Quick Links */}
+        <div className="font-mono text-xs">
+          <p className="font-bold text-white uppercase tracking-wider">&gt;_ Tezkor havolalar</p>
+          <ul className="mt-3 space-y-2 font-bold uppercase tracking-wider text-[10px]">
             <li>
-              <Link href="/kurslar" className="transition hover:text-[#00D1FF]">
-                Kurslar
+              <Link href="/kurslar" className="text-slate-400 hover:text-[#39ff14] transition duration-300">
+                Kurslar_arxivi
               </Link>
             </li>
             <li>
-              <Link href="/paketlar" className="transition hover:text-[#00D1FF]">
-                Paketlar
-              </Link>
-            </li>
-            <li>
-              <Link href="/dars-jadvali" className="transition hover:text-[#00D1FF]">
-                Dars jadvali
-              </Link>
-            </li>
-            <li>
-              <Link href="/ariza" className="transition hover:text-[#00D1FF]">
-                Ariza
-              </Link>
-            </li>
-            <li>
-              <Link href="/ariza?free=1" className="transition hover:text-[#00D1FF]">
-                Bepul darsga yozilish
+              <Link href="/dars-jadvali" className="text-slate-400 hover:text-[#39ff14] transition duration-300">
+                Dars_jadvali.log
               </Link>
             </li>
           </ul>
         </div>
+
+        {/* Column 4: System Diagnostics Dashboard (Exclusive Hacker Feature!) */}
+        <div className="font-mono text-xs">
+          <p className="font-bold text-white uppercase tracking-wider">&gt;_ System Diagnostics</p>
+          <ul className="mt-3 space-y-1.5 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+            <li className="flex items-center justify-between border-b border-white/5 pb-1">
+              <span>Node Connection:</span>
+              <span className="text-[#39ff14] font-black">ESTABLISHED ✓</span>
+            </li>
+            <li className="flex items-center justify-between border-b border-white/5 pb-1">
+              <span>Security Shield:</span>
+              <span className="text-[#00D1FF] font-black">ACTIVE 🛡</span>
+            </li>
+            <li className="flex items-center justify-between border-b border-white/5 pb-1">
+              <span>SSL Encryption:</span>
+              <span className="text-violet-400 font-black">HIGH (256-BIT)</span>
+            </li>
+            <li className="flex items-center justify-between">
+              <span>Diagnostic Code:</span>
+              <span className="text-pink-500 font-black">CYBER_SYS_3.2</span>
+            </li>
+          </ul>
+        </div>
+
       </div>
-      <div className="border-t border-white/10 py-4 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} {centerName || "Texno Markaz"}. Barcha huquqlar himoyalangan.
+      <div className="border-t border-white/5 py-6 text-center text-[9px] font-mono text-slate-600 uppercase tracking-[0.25em]">
+        // SECURE PORTAL TERMINAL ONLINE // © {new Date().getFullYear()} {centerName || "Cyber Tech Academy"}. Barcha huquqlar himoyalangan.
       </div>
     </footer>
   );

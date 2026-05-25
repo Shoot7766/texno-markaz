@@ -56,51 +56,62 @@ export default async function KursDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-      <nav className="text-sm text-slate-500">
-        <Link href="/kurslar" className="text-[#00D1FF] hover:underline">
-          Kurslar
+      
+      {/* Breadcrumbs */}
+      <nav className="text-xs font-mono uppercase tracking-wider text-slate-500">
+        <Link href="/kurslar" className="text-[#39ff14] hover:underline">
+          &gt;_ Kurslar
         </Link>
         <span className="mx-2">/</span>
         <span className="text-slate-300">{c.name}</span>
       </nav>
 
+      {/* Main Terminal detail node */}
       <article
-        className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-8 tm-ring-glow"
-        style={{ borderTopWidth: 4, borderTopColor: c.color ?? "#00D1FF" }}
+        className="cyber-card mt-8 p-8 font-mono group"
+        style={{ borderTopWidth: 4, borderTopColor: c.color ?? "#39ff14" }}
       >
-        <h1 className="text-3xl font-bold tracking-tight text-white">{c.name}</h1>
-        <p className="mt-4 text-lg text-slate-400">{c.description}</p>
+        {/* Cyber corner brackets */}
+        <div className="absolute top-0 right-0 h-3 w-3 border-t border-r border-[#39ff14]/30 group-hover:border-[#39ff14]" />
+        <div className="absolute bottom-0 left-0 h-3 w-3 border-b border-l border-[#39ff14]/30 group-hover:border-[#39ff14]" />
 
-        <dl className="mt-8 grid gap-6 sm:grid-cols-2">
-          <div>
-            <dt className="text-sm text-slate-500">Narx</dt>
-            <dd className="mt-1 text-xl font-semibold text-[#00D1FF]">
+        <h1 className="text-2xl font-black text-white group-hover:text-[#39ff14] transition uppercase tracking-wide">
+          {c.name}
+        </h1>
+        <p className="mt-4 text-xs font-mono text-slate-400 leading-relaxed font-light">
+          // DESCRIPTION: {c.description}
+        </p>
+
+        <dl className="mt-8 grid gap-6 text-xs sm:grid-cols-2">
+          <div className="border-b border-white/5 pb-4">
+            <dt className="text-slate-500 uppercase font-black">Narxi</dt>
+            <dd className="mt-1.5 text-lg font-black text-[#39ff14]">
               {formatUzs(Number(c.price))}
             </dd>
           </div>
-          <div>
-            <dt className="text-sm text-slate-500">Davomiylik</dt>
-            <dd className="mt-1 text-xl font-semibold text-white">{c.duration}</dd>
+          <div className="border-b border-white/5 pb-4">
+            <dt className="text-slate-500 uppercase font-black">Davomiyligi</dt>
+            <dd className="mt-1.5 text-lg font-black text-white">{c.duration}</dd>
           </div>
           {c.level ? (
-            <div>
-              <dt className="text-sm text-slate-500">Daraja</dt>
-              <dd className="mt-1 font-medium text-slate-300">{c.level}</dd>
+            <div className="border-b border-white/5 pb-4">
+              <dt className="text-slate-500 uppercase font-black">Darajasi</dt>
+              <dd className="mt-1.5 font-bold text-slate-300">{c.level}</dd>
             </div>
           ) : null}
-          <div className="sm:col-span-2">
-            <dt className="text-sm text-slate-500">Kimlar uchun</dt>
-            <dd className="mt-2 text-slate-300">
+          <div className="border-b border-white/5 pb-4 sm:col-span-2">
+            <dt className="text-slate-500 uppercase font-black">Kimlar uchun</dt>
+            <dd className="mt-1.5 font-bold text-slate-300 leading-relaxed">
               {(c.for_who ?? []).length ? (c.for_who ?? []).join(" · ") : "—"}
             </dd>
           </div>
           {(c.features ?? []).length > 0 && (
-            <div className="sm:col-span-2">
-              <dt className="text-sm text-slate-500">Afzalliklar</dt>
+            <div className="border-b border-white/5 pb-4 sm:col-span-2">
+              <dt className="text-slate-500 uppercase font-black">Afzalliklari & Texnologiyalar</dt>
               <dd className="mt-2">
-                <ul className="list-inside list-disc space-y-1 text-slate-400">
+                <ul className="list-inside list-disc space-y-1.5 text-slate-400 font-light leading-relaxed">
                   {(c.features ?? []).map((f) => (
-                    <li key={f}>{f}</li>
+                    <li key={f} className="marker:text-[#39ff14]">{f}</li>
                   ))}
                 </ul>
               </dd>
@@ -108,17 +119,17 @@ export default async function KursDetailPage({ params }: Props) {
           )}
           {groups.length > 0 && (
             <div className="sm:col-span-2">
-              <dt className="text-sm text-slate-500">Dars jadvali</dt>
-              <dd className="mt-2 space-y-2 text-slate-300">
+              <dt className="text-slate-500 uppercase font-black">Mavjud guruhlar & Jadval</dt>
+              <dd className="mt-3 space-y-3 text-slate-300">
                 {groups.map((g) => (
-                  <div key={g.id} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-                    <div className="text-sm font-medium text-white">{g.name}</div>
-                    <div className="text-xs text-emerald-300">
-                      {(g.schedule_days ?? []).length
+                  <div key={g.id} className="rounded-xl border border-white/5 bg-black/60 px-4 py-3 hover:border-[#39ff14]/30 transition duration-300 relative">
+                    <div className="text-xs font-black text-white">{g.name}</div>
+                    <div className="text-[10px] text-[#00D1FF] font-bold mt-1.5">
+                      &gt;_ {(g.schedule_days ?? []).length
                         ? `${(g.schedule_days ?? []).join(", ")}${formatTimeDisplay(g.schedule_time) ? ` · ${formatTimeDisplay(g.schedule_time)}` : ""}`
                         : (g.schedule ?? "Jadval kiritilmagan")}
                     </div>
-                    <div className="text-xs text-slate-400">
+                    <div className="text-[10px] text-slate-500 mt-1">
                       {g.teacher ? `O‘qituvchi: ${g.teacher}` : "O‘qituvchi belgilanmagan"}
                     </div>
                   </div>
@@ -131,13 +142,13 @@ export default async function KursDetailPage({ params }: Props) {
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/ariza?free=1"
-            className="inline-flex rounded-full bg-gradient-to-r from-[#00D1FF] to-[#6C63FF] px-6 py-3 text-sm font-semibold text-[#0B0F1A] shadow-lg shadow-cyan-500/20 hover:brightness-110"
+            className="inline-flex rounded-xl bg-[#39ff14] px-6 py-3 text-xs font-black text-black uppercase tracking-wider transition hover:brightness-110 shadow-lg shadow-[#39ff14]/20"
           >
             Bepul darsga yozilish
           </Link>
           <Link
             href="/ariza"
-            className="inline-flex rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-slate-200 hover:border-[#00D1FF]/40"
+            className="inline-flex rounded-xl border border-[#39ff14]/30 bg-black/40 px-6 py-3 text-xs font-bold text-[#39ff14] uppercase tracking-wider transition hover:bg-[#39ff14]/10"
           >
             Ariza qoldirish
           </Link>

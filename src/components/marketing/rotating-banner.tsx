@@ -45,8 +45,8 @@ export function RotatingBanner() {
   return (
     <div className="border-b border-cyan-500/25 bg-gradient-to-b from-[#0a0f1c] to-[#060912]">
       <div className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        <p className="mb-4 text-center text-xs font-medium uppercase tracking-[0.2em] text-[#6C63FF]">
-          Texno Markaz
+        <p className="mb-4 text-center text-xs font-mono font-semibold uppercase tracking-[0.25em] text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.4)]">
+          Cyber Tech Academy
         </p>
 
         <div className="relative mx-auto flex min-h-[220px] max-w-3xl items-center justify-center [perspective:1400px] sm:min-h-[260px]">

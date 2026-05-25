@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { MarketingHeader } from "@/components/marketing/header";
 import { MarketingFooter } from "@/components/marketing/footer";
-import { RotatingBanner } from "@/components/marketing/rotating-banner";
+import { ProfileSidebar } from "@/components/marketing/profile-sidebar";
+import { MatrixBackground } from "@/components/marketing/matrix-background";
 import { VisitorTracker } from "@/components/visitor-tracker";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 
@@ -15,7 +16,7 @@ async function getFooter() {
       .maybeSingle();
     return (
       data ?? {
-        center_name: "Texno Markaz",
+        center_name: "Cyber Tech Academy",
         phone: "+998 90 123 45 67",
         telegram: "https://t.me/",
         instagram: "https://instagram.com/",
@@ -25,7 +26,7 @@ async function getFooter() {
     );
   } catch {
     return {
-      center_name: "Texno Markaz",
+      center_name: "Cyber Tech Academy",
       phone: "+998 90 123 45 67",
       telegram: "https://t.me/",
       instagram: "https://instagram.com/",
@@ -47,9 +48,10 @@ export default async function MarketingLayout({
       <Suspense fallback={null}>
         <VisitorTracker />
       </Suspense>
+      <MatrixBackground />
       <MarketingHeader centerName={s.center_name} logoUrl={s.logo_url} />
-      <RotatingBanner />
       <main className="flex-1">{children}</main>
+      <ProfileSidebar />
       <MarketingFooter
         centerName={s.center_name}
         logoUrl={s.logo_url}
