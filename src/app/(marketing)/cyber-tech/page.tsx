@@ -39,6 +39,7 @@ import {
   Users,
   AlertTriangle,
   Database,
+  Gamepad2,
 } from "lucide-react";
 import { createClient, createCleanPublicClient } from "@/lib/supabase/client";
 
@@ -1769,7 +1770,7 @@ export default function UltimateCyberTechPage() {
   // ==========================================
   // 2. STATE VARIABLES & CONTEXT
   // ==========================================
-  const [activeTab, setActiveTab] = useState<"dashboard" | "roadmap" | "darslar" | "kitoblar" | "testlar" | "ctf" | "leaderboard" | "profile">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "roadmap" | "darslar" | "kitoblar" | "testlar" | "ctf" | "games" | "leaderboard" | "profile">("dashboard");
   const [selectedRoadmapNode, setSelectedRoadmapNode] = useState<number>(0);
   const [currentTheme, setCurrentTheme] = useState<"blue" | "green" | "pink">("blue");
   const [dbRankings, setDbRankings] = useState<any[]>([]);
@@ -1870,6 +1871,129 @@ export default function UltimateCyberTechPage() {
   // Leaderboard points
   const [userPoints, setUserPoints] = useState(0);
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>([]);
+
+  // ── Kiber O'yinlar Arena (Mini-Games) states & logic ───────────────────────
+  const [activeGame, setActiveGame] = useState<"none" | "typer" | "binary">("none");
+
+  // Game 1: Cyber Threat Typer
+  const [typerWord, setTyperWord] = useState("");
+  const [typerInput, setTyperInput] = useState("");
+  const [typerScore, setTyperScore] = useState(0);
+  const [typerTime, setTyperTime] = useState(30);
+  const [typerActive, setTyperActive] = useState(false);
+
+  // Game 2: Binary Hacker
+  const [binaryNum, setBinaryNum] = useState(0);
+  const [binaryAnswer, setBinaryAnswer] = useState("");
+  const [binaryOptions, setBinaryOptions] = useState<string[]>([]);
+  const [binaryScore, setBinaryScore] = useState(0);
+  const [binaryTime, setBinaryTime] = useState(30);
+  const [binaryActive, setBinaryActive] = useState(false);
+
+  // Cyber Threat Typer Game Timer
+  useEffect(() => {
+    if (typerActive && typerTime > 0) {
+      const t = setTimeout(() => setTyperTime(typerTime - 1), 1000);
+      return () => clearTimeout(t);
+    } else if (typerTime === 0 && typerActive) {
+      setTyperActive(false);
+      playBuzzSound();
+      // Award final points
+      const bonus = typerScore * 10;
+      if (bonus > 0) {
+        const finalPts = userPoints + bonus;
+        setUserPoints(finalPts);
+        pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, finalPts);
+      }
+    }
+  }, [typerTime, typerActive, userPoints]);
+
+  // Binary Hacker Game Timer
+  useEffect(() => {
+    if (binaryActive && binaryTime > 0) {
+      const t = setTimeout(() => setBinaryTime(binaryTime - 1), 1000);
+      return () => clearTimeout(t);
+    } else if (binaryTime === 0 && binaryActive) {
+      setBinaryActive(false);
+      playBuzzSound();
+      // Award final points
+      const bonus = binaryScore * 15;
+      if (bonus > 0) {
+        const finalPts = userPoints + bonus;
+        setUserPoints(finalPts);
+        pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, finalPts);
+      }
+    }
+  }, [binaryTime, binaryActive, userPoints]);
+
+  // ── Cyber Threat Typer Handlers ───────────────────────────────────────────
+  const TYPER_WORDS = [
+    "DDOS", "TROJAN", "PHISHING", "FIREWALL", "ENCRYPTION", "BRUTEFORCE", 
+    "MALWARE", "DECRYPT", "PROXY", "VPN", "ROOTKIT", "BACKDOOR", "WORM", 
+    "RANSOMWARE", "SPYWARE", "EXPLOIT", "PAYLOAD", "CREDENTIALS", "DATA_BREACH"
+  ];
+
+  const startTyperGame = () => {
+    playTrophySound();
+    const firstWord = TYPER_WORDS[Math.floor(Math.random() * TYPER_WORDS.length)];
+    setTyperWord(firstWord);
+    setTyperInput("");
+    setTyperScore(0);
+    setTyperTime(30);
+    setTyperActive(true);
+    setActiveGame("typer");
+  };
+
+  const handleTyperInput = (val: string) => {
+    setTyperInput(val);
+    if (val.trim().toUpperCase() === typerWord) {
+      playClickSound();
+      setTyperScore(prev => prev + 1);
+      setTyperInput("");
+      const nextWord = TYPER_WORDS[Math.floor(Math.random() * TYPER_WORDS.length)];
+      setTyperWord(nextWord);
+    }
+  };
+
+  // ── Binary Hacker Handlers ────────────────────────────────────────────────
+  const generateBinaryQuestion = () => {
+    const dec = Math.floor(Math.random() * 30) + 1; // 1 to 30 decimal
+    setBinaryNum(dec);
+    const correctBin = dec.toString(2).padStart(8, "0");
+    setBinaryAnswer(correctBin);
+
+    // Generate 3 wrong options
+    const optionsSet = new Set<string>();
+    optionsSet.add(correctBin);
+    while (optionsSet.size < 4) {
+      const wrongDec = Math.floor(Math.random() * 30) + 1;
+      if (wrongDec !== dec) {
+        optionsSet.add(wrongDec.toString(2).padStart(8, "0"));
+      }
+    }
+    setBinaryOptions(Array.from(optionsSet).sort(() => Math.random() - 0.5));
+  };
+
+  const startBinaryGame = () => {
+    playTrophySound();
+    generateBinaryQuestion();
+    setBinaryScore(0);
+    setBinaryTime(30);
+    setBinaryActive(true);
+    setActiveGame("binary");
+  };
+
+  const handleBinaryAnswer = (selected: string) => {
+    if (selected === binaryAnswer) {
+      playClickSound();
+      setBinaryScore(prev => prev + 1);
+      generateBinaryQuestion();
+    } else {
+      playBuzzSound();
+      // Generate next question
+      generateBinaryQuestion();
+    }
+  };
 
   // AI Mentor Chatbot
   const [mentorOpen, setMentorOpen] = useState(false);
@@ -2916,9 +3040,10 @@ export default function UltimateCyberTechPage() {
                     { tab: "kitoblar",    icon: BookOpen,     label: "Kutubxona" },
                     { tab: "testlar",     icon: Award,        label: "Test Markazi" },
                     { tab: "ctf",         icon: Zap,          label: "CTF Arena" },
+                    { tab: "games",       icon: Gamepad2,     label: "O'yinlar" },
                     { tab: "leaderboard", icon: Trophy,       label: "Reyting" },
                     { tab: "profile",     icon: User,         label: "Profil" },
-                  ] as { tab: "dashboard"|"roadmap"|"darslar"|"kitoblar"|"testlar"|"ctf"|"leaderboard"|"profile"; icon: any; label: string }[]).map(({ tab, icon: Icon, label }, idx) => {
+                  ] as { tab: "dashboard"|"roadmap"|"darslar"|"kitoblar"|"testlar"|"ctf"|"games"|"leaderboard"|"profile"; icon: any; label: string }[]).map(({ tab, icon: Icon, label }, idx) => {
                     const isActive = activeTab === tab;
                     return (
                       <button
@@ -2975,6 +3100,7 @@ export default function UltimateCyberTechPage() {
                     { tab: "kitoblar",    icon: BookOpen,     label: "Kutubxona" },
                     { tab: "testlar",     icon: Award,        label: "Test Markazi" },
                     { tab: "ctf",         icon: Zap,          label: "CTF Arena" },
+                    { tab: "games",       icon: Gamepad2,     label: "O'yinlar" },
                     { tab: "leaderboard", icon: Trophy,       label: "Reyting" },
                     { tab: "profile",     icon: User,         label: "Profil" },
                   ] as const).map(({ tab, icon: Icon, label }, idx) => {
@@ -5173,6 +5299,189 @@ export default function UltimateCyberTechPage() {
                       </div>
                     </div>
                   </>
+                )}
+              </div>
+            )}
+
+            {/* =======================================================
+                TAB 6.5: KIBER O'YINLAR ARENASI
+                ======================================================= */}
+            {activeTab === "games" && (
+              <div className="space-y-6 animate-fade-in">
+                <div>
+                  <h3 className="text-xl font-black text-white flex items-center gap-2">
+                    <Gamepad2 className="h-5 w-5 text-purple-500 animate-pulse animate-bounce" style={{ color: themeColors.solid }} /> Kiber O&apos;yinlar Arenasi
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Dasturlash, kiberxavfsizlik va ikkilik tizimlarni o&apos;yin orqali o&apos;rganing va qo&apos;shimcha ochkolar (XP) to&apos;plang!
+                  </p>
+                </div>
+
+                {activeGame === "none" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Game 1: Cyber Threat Typer */}
+                    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1630] to-[#0b0f1a] p-6 space-y-4 hover:border-purple-500/30 transition shadow-2xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-black font-sans pointer-events-none select-none">⌨️</div>
+                      <div className="space-y-2">
+                        <span className="text-[10px] uppercase font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md tracking-wider">Tezlik va Diqqat</span>
+                        <h4 className="text-lg font-black text-white">Cyber Threat Typer ⌨️</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          Ekrandagi xavfli viruslar va tahdidlar nomini vaqt tugaguncha tez va xatosiz terib, kiber hujumni bartaraf eting. Har bir to&apos;g&apos;ri so&apos;z uchun **+10 XP**!
+                        </p>
+                      </div>
+                      <div className="pt-2">
+                        <button
+                          onClick={startTyperGame}
+                          className="w-full py-3 bg-[#00D1FF] text-black text-xs font-black rounded-xl hover:brightness-110 shadow-lg shadow-[#00D1FF]/10 transition duration-300 cursor-pointer"
+                        >
+                          O&apos;yinni Boshlash
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Game 2: Binary Hacker */}
+                    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1630] to-[#0b0f1a] p-6 space-y-4 hover:border-emerald-500/30 transition shadow-2xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-black font-sans pointer-events-none select-none">01</div>
+                      <div className="space-y-2">
+                        <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md tracking-wider">Matematika va Kod</span>
+                        <h4 className="text-lg font-black text-white">Binary Hacker 🤖</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          O&apos;nlik sonlarni tezda 8-bitli ikkilik (binary) tizimga o&apos;tkazing. Ikkilik sanoq tizimi bilan ishlash tezligingizni sinab ko&apos;ring. Har bir to&apos;g&apos;ri javob uchun **+15 XP**!
+                        </p>
+                      </div>
+                      <div className="pt-2">
+                        <button
+                          onClick={startBinaryGame}
+                          className="w-full py-3 bg-[#00D1FF] text-black text-xs font-black rounded-xl hover:brightness-110 shadow-lg shadow-[#00D1FF]/10 transition duration-300 cursor-pointer"
+                        >
+                          O&apos;yinni Boshlash
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : activeGame === "typer" ? (
+                  <div className="rounded-3xl border border-[#00d1ff]/20 bg-[#0c0f1e]/90 p-6 sm:p-10 text-center space-y-6 relative overflow-hidden max-w-xl mx-auto shadow-2xl animate-success-pop">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                      <div className="text-left font-mono">
+                        <p className="text-[10px] text-slate-500">OCHKO</p>
+                        <p className="text-lg font-black text-white">{typerScore} ta</p>
+                      </div>
+                      <div className="text-center font-mono">
+                        <p className="text-[10px] text-slate-500">QOLGAN VAQT</p>
+                        <p className={`text-xl font-black animate-pulse ${typerTime <= 5 ? "text-rose-500" : "text-emerald-400"}`}>{typerTime}s</p>
+                      </div>
+                      <button
+                        onClick={() => { playBuzzSound(); setActiveGame("none"); setTyperActive(false); }}
+                        className="text-xs text-rose-400 hover:underline font-bold cursor-pointer"
+                      >
+                        Chiqish
+                      </button>
+                    </div>
+
+                    {typerActive ? (
+                      <div className="py-6 space-y-6">
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-purple-400 tracking-widest animate-pulse">TAHDIDNI TAYPING</p>
+                          <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-mono tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                            {typerWord}
+                          </h2>
+                        </div>
+
+                        <div className="max-w-xs mx-auto">
+                          <input
+                            type="text"
+                            value={typerInput}
+                            autoFocus
+                            onChange={(e) => handleTyperInput(e.target.value)}
+                            placeholder="Tezlikda terib yuboring..."
+                            className="w-full text-center rounded-xl border border-[#00D1FF]/40 bg-black/60 p-3 text-lg font-mono text-white placeholder-slate-600 focus:outline-none focus:border-[#00D1FF] focus:ring-1 focus:ring-[#00D1FF]"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-8 space-y-6">
+                        <div className="h-16 w-16 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30 text-emerald-400 animate-success-pop">
+                          <Trophy className="h-7 w-7" />
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-xl font-black text-white">Vaqt Tugadi!</h4>
+                          <p className="text-sm text-slate-400">
+                            Siz jami **{typerScore} ta** tahdidni bartaraf etdingiz va **+{typerScore * 10} XP** to&apos;pladingiz!
+                          </p>
+                        </div>
+                        <div>
+                          <button
+                            onClick={startTyperGame}
+                            className="py-3 px-8 bg-purple-600 text-white text-xs font-black rounded-xl hover:bg-purple-700 transition cursor-pointer"
+                          >
+                            Qayta O&apos;ynash
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-3xl border border-[#00d1ff]/20 bg-[#0c0f1e]/90 p-6 sm:p-10 text-center space-y-6 relative overflow-hidden max-w-xl mx-auto shadow-2xl animate-success-pop">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                      <div className="text-left font-mono">
+                        <p className="text-[10px] text-slate-500">OCHKO</p>
+                        <p className="text-lg font-black text-white">{binaryScore} ta</p>
+                      </div>
+                      <div className="text-center font-mono">
+                        <p className="text-[10px] text-slate-500">QOLGAN VAQT</p>
+                        <p className={`text-xl font-black animate-pulse ${binaryTime <= 5 ? "text-rose-500" : "text-emerald-400"}`}>{binaryTime}s</p>
+                      </div>
+                      <button
+                        onClick={() => { playBuzzSound(); setActiveGame("none"); setBinaryActive(false); }}
+                        className="text-xs text-rose-400 hover:underline font-bold cursor-pointer"
+                      >
+                        Chiqish
+                      </button>
+                    </div>
+
+                    {binaryActive ? (
+                      <div className="py-6 space-y-6">
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-emerald-400 tracking-widest animate-pulse">IKKILIK KODGA O&apos;TKAZING (8-bit)</p>
+                          <h2 className="text-4xl font-extrabold text-white font-mono tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                            {binaryNum}
+                          </h2>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
+                          {binaryOptions.map((opt) => (
+                            <button
+                              key={opt}
+                              onClick={() => handleBinaryAnswer(opt)}
+                              className="py-3 px-4 bg-white/5 border border-white/10 hover:border-emerald-400 rounded-xl text-xs font-mono text-slate-200 hover:text-white transition duration-200 cursor-pointer"
+                            >
+                              {opt}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-8 space-y-6">
+                        <div className="h-16 w-16 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30 text-emerald-400 animate-success-pop">
+                          <Trophy className="h-7 w-7" />
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-xl font-black text-white">Vaqt Tugadi!</h4>
+                          <p className="text-sm text-slate-400">
+                            Siz jami **{binaryScore} ta** sonni to&apos;g&apos;ri o&apos;tkazdingiz va **+{binaryScore * 15} XP** to&apos;pladingiz!
+                          </p>
+                        </div>
+                        <div>
+                          <button
+                            onClick={startBinaryGame}
+                            className="py-3 px-8 bg-emerald-600 text-white text-xs font-black rounded-xl hover:bg-emerald-700 transition cursor-pointer"
+                          >
+                            Qayta O&apos;ynash
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
