@@ -1,0 +1,96 @@
+[
+  {
+    "id": "book-cyber",
+    "title": "Kiberxavfsizlik: Xakerlik sirlari va Himoya",
+    "author": "Cyber Tech Academy",
+    "pages": 145,
+    "category": "Kiberxavfsizlik",
+    "coverColor": "from-pink-600 to-purple-800",
+    "summary": "Xavfsiz internet, ijtimoiy muhandislik, portlar va Linux audit tizimlari haqida mukammal qo'llanma.",
+    "chapters": [
+      {
+        "title": "1-Bob: Ijtimoiy muhandislik xavfi va turlari",
+        "content": "Ijtimoiy muhandislik (Social Engineering) - bu inson ruhiyatini aldash, psixologik manipulyatsiya qilish orqali maxfiy ma'lumotlarni o'g'irlash yoki tizimga ruxsatsiz kirish huquqini qo'lga kiritish san'atidir. Texnologik himoya tizimlari qanchalik mukammal bo'lmasin, eng zaif nuqta har doim inson omili (human factor) bo'lib qolaveradi.\n\nHujumchilar asosan quyidagi psixologik instinktlar orqali harakat qilishadi:\n1. Mansabdorlik (Authority): Adminga, bank rahbariga yoki huquq-tartibot xodimiga o'xshab gapirish.\n2. Shoshilinchlik (Urgency): \"Hisobingiz 10 daqiqada bloklanadi!\" kabi vahimali xabarlar yuborish.\n3. Qo'rquv va Vahima (Fear): Xavfsizlik zaifligi yoki jazo choralari bilan qo'rqitish.\n4. Ochko'zlik (Greed): \"Siz 10,000,000 so'm yutib oldingiz!\" kabi soxta aksiyalar taklif qilish.\n\nAsosiy ijtimoiy muhandislik turlari:\n- Phishing (Fishing): Ommaviy ravishda soxta elektron xatlar yoki SMS xabarlar yuborish. Hujumchi foydalanuvchini soxta veb-sahifaga yo'naltiradi.\n- Spear Phishing: Maqsadli fishing. Bunda ma'lum bir shaxs yoki kompaniya xodimi haqida ma'lumot to'planib, faqat unga moslashtirilgan xat yuboriladi.\n- Vishing (Ovozli fishing): Telefon qo'ng'iroqlari orqali ma'lumot yig'ish yoki bank kartasidagi mablag'ni o'g'irlash.\n- Baiting (Yem qo'yish): Kompyuter atrofiga ustiga \"Maxfiy ish haqlar\" deb yozilgan virusli Fleshka (USB) tashlab ketish. Qiziquvchan xodim uni kompyuterga suqqanda virus faollashadi.\n\nIjtimoiy muhandislikdan himoyalanish uchun hech qachon shubhali havolalarga kirmang, bank kartangizning PIN-kodi va SMS orqali keladigan 5 xonali tasdiqlash kodini hech kimga aytmang. Rasmiy tashkilotlar bunday ma'lumotlarni hech qachon telefon orqali so'ramaydi!"
+      },
+      {
+        "title": "2-Bob: Tarmoq protokollari xavfsizligi va MitM",
+        "content": "Internet va ichki tarmoqlarda ma'lumotlar paketlar oqimi shaklida uzatiladi. Muloqot protokollari qoidalar to'plami hisoblanadi. Agar tarmoq trafigi shifrlanmagan bo'lsa, xaker uni osongina o'g'irlashi mumkin.\n\nKlassik HTTP protokoli shifrlanmagan bo'lib, bajaran ma'lumotlarni (shu jumladan parollar va xarid kartalarini) ochiq matn (Plaintext) ko'rinishida uzatadi. Xaker ichki tarmoqda (masalan, umumiy Wi-Fi nuqtasida) o'tirib, Wireshark kabi dasturlar yordamida ushbu trafigni ushlab olishi (Sniffing) va o'qishi mumkin. Ushbu hujum Man-in-the-Middle (MitM - O'rtadagi odam) hujumi deyiladi.\n\nMitM hujumi turlari:\n1. ARP Spoofing: Ichki tarmoqda tarmoq kartalari (MAC manzillar) va IP manzillar o'rtasidagi bog'lanishni buzish orqali barcha trafigni o'z kompyuteriga yo'naltirish.\n2. DNS Spoofing (DNS Poisoning): Saytlarning IP manzillarini saqlaydigan keshni zaharli ma'lumotlar bilan to'ldirish. Natijada foydalanuvchi google.com deb yozsa ham, xakerning soxta serveriga yo'naltiriladi.\n\nHTTPS protokoli HTTP-ga qaraganda xavfsiz hisoblanadi. U ma'lumotlarni SSL/TLS protokoli yordamida shifrlab uzatadi. Shifrlash asimmetrik va simmetrik algoritmlarga asoslangan bo'lib, xaker tarmoq trafigini ushlab olgan taqdirda ham uni kalitsiz o'qiy olmaydi. Shuning uchun brauzeringizda har doim \"qulflangan qulf\" belgisiga va HTTPS prefiksiga e'tibor bering."
+      }
+    ]
+  },
+  {
+    "id": "book-py-hack",
+    "title": "Python orqali Xakerlik Skriptlarini Yozish",
+    "author": "Qora Shlyapali Xaker",
+    "pages": 210,
+    "category": "Dasturlash",
+    "coverColor": "from-teal-600 to-cyan-900",
+    "summary": "Port scannerlar, brute-force vositalari, tarmoq snifferlari va Python yordamida exploitlarni avtomatlashtirish.",
+    "chapters": [
+      {
+        "title": "1-Bob: Socket dasturlash va Port Scanner yozish",
+        "content": "Python tili kiberxavfsizlik xodimlari va xakerlar uchun asosiy qurol hisoblanadi. Uning yordamida tarmoq monitoringi, zaifliklarni skanerlash va exploitlarni avtomatlashtirish skriptlari juda tez yoziladi.\n\nTarmoq ulanishlarini past darajada boshqarish uchun Python-ning 'socket' kutubxonasi ishlatiladi. Socket yordamida biz tarmoqdagi istalgan kompyuter va portga TCP/IP ulanishlarini yuborishimiz va ochiq/yopiqligini tekshirishimiz mumkin.\n\nQuyida Python dasturlash tilida yozilgan sodda Port Scanner skripti keltirilgan:\n\nimport socket\nimport sys\n\ntarget_host = \"10.10.23.45\"\nports_to_scan = [21, 22, 80, 443, 4444]\n\nprint(f\"[*] Skanerlash boshlanmoqda: {target_host}\")\nfor port in ports_to_scan:\n    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n    s.settimeout(1.0)\n    result = s.connect_ex((target_host, port))\n    if result == 0:\n        print(f\"[+] Port {port} OCHIQ (OPEN)\")\n    else:\n        print(f\"[-] Port {port} yopiq\")\n    s.close()\n\nUshbu skript har bir portga TCP SYN paketini yuborib, ulanish muvaffaqiyatli amalga oshganini tekshiradi."
+      }
+    ]
+  },
+  {
+    "id": "book-wifi-sec",
+    "title": "Wi-Fi Tarmoqlari va Ularning Zaifliklari",
+    "author": "Wireless Pentester",
+    "pages": 145,
+    "category": "Kiberxavfsizlik",
+    "coverColor": "from-indigo-600 to-pink-900",
+    "summary": "Simsiz tarmoq shifrlari (WPA2/WPA3), Wi-Fi router xavfsizligi va qo'shnilardan himoyalanish.",
+    "chapters": [
+      {
+        "title": "1-Bob: Simsiz shifrlash protokollari zaifliklari",
+        "content": "Simsiz Wi-Fi tarmoqlari ma'lumotlarni radio to'lqinlar orqali havoga tarqatgani sababli, ularning xavfsizligi o'ta muhim. Agar shifrlash yo'lga qo'yilmasa, tarmoq atrofidagi har qanday odam trafigni o'g'irlay oladi.\n\nWi-Fi shifrlash protokollari tarixi:\n1. WEP (Wired Equivalent Privacy): Eng birinchi, juda zaif shifr. Undagi matematik xatolik sababli, xakerlar bir necha daqiqada aircrack-ng vositasi bilan uning parolini buza olishadi. Mutloq ishlatish taqiqlanadi!\n2. WPA (Wi-Fi Protected Access): Vaqtinchalik yechim sifatida yaratilgan, hozirda eskirgan.\n3. WPA2: Bugungi kunda dunyodagi eng keng tarqalgan xavfsizlik standarti. U AES shifrlashiga asoslangan. Lekin unda ham Handshake (ulanuvchi va router o'rtasidagi kelishuv paketlari) ushlab olinib, parolni lug'at orqali terib ko'rish (Brute-force) zaifligi mavjud.\n4. WPA3: Eng so'nggi xavfsiz protokol. Unda lug'at orqali parollarni terib ko'rish (offline dictionary attack) va handshake o'g'irlash hujumlariga qarshi mukammal himoya o'rnatilgan.\n\nSimsiz tarmoqni himoyalash choralari:\nRouteringiz konfiguratsiya sahifasiga kirib, WPS (Wi-Fi Protected Setup) funksiyasini mutloq o'chirib qo'ying (chunki WPS PIN kodlari juda tez buziladi), parolni esa kamida 12 ta harf va sonlardan iborat murakkab qiling."
+      }
+    ]
+  },
+  {
+    "id": "book-social-eng",
+    "title": "Ijtimoiy Muhandislik va Phishing Hujumlari",
+    "author": "Kiber Phishing",
+    "pages": 135,
+    "category": "Kiberxavfsizlik",
+    "coverColor": "from-red-700 to-red-950",
+    "summary": "Inson ruhiyati manipulyatsiyasi, phishing sahifalari arxitekturasi va fishing hujumlaridan himoya strategiyasi.",
+    "chapters": [
+      {
+        "title": "1-Bob: Phishing (Fishing) turlari va tuzilishi",
+        "content": "Electronic Phishing (Fishing) - kiber-jinoyatchilikning eng keng tarqalgan turi bo'lib, soxta xatlar, veb-sahifalar yoki ijtimoiy tarmoqlar orqali foydalanuvchining shaxsiy ma'lumotlarini (login, parol, karta raqamlari) qo'lga kiritishga qaratilgan hujumdir.\n\nHujumchilar odatda quyidagi usullardan foydalanadi:\n- Domain Spoofing: Haqiqiy sayt nomiga juda o'xshash bo'lgan soxta domen sotib olish. Masalan, telegram.org o'rniga te1egram.org yoki instagram.com o'rniga 1nstagram.com.\n- Clone Phishing: Haqiqiy kompaniyaning avvalgi rasmiy elektron xatini nusxalab, faqat uning ichidagi havolani virusli havolaga almashtirish.\n- Spear Phishing: Maqsadli fishing. Bunda ma'lum bir shaxs yoki kompaniya xodimi haqida ma'lumot to'planib, faqat unga moslashtirilgan xat yuboriladi.\n- Smishing: SMS xabarlar orqali fishing.\n\nFishingdan himoyalanishning eng oltin qoidasi: Havolaga kirishdan oldin brauzer manzillar satridagi domen nomini harflab tekshiring. Agar u rasmiy domen bo'lmasa, hech qachon login yoki parolingizni kiritmang!"
+      }
+    ]
+  },
+  {
+    "id": "book-owasp-top10",
+    "title": "OWASP Top 10 Veb Zaifliklari standarti",
+    "author": "AppSec Engineers",
+    "pages": 175,
+    "category": "Kiberxavfsizlik",
+    "coverColor": "from-purple-700 to-purple-950",
+    "summary": "Veb ilovalardagi eng xavfli 10 ta xavfsizlik kamchiliklari va ulardan himoyalanish bo'yicha OWASP xalqaro standarti.",
+    "chapters": [
+      {
+        "title": "1-Bob: OWASP standarti tushunchasi",
+        "content": "OWASP (Open Web Application Security Project) - bu veb-ilovalarning xavfsizligini oshirish ustida ishlaydigan xalqaro notijorat tashkilotdir. Uning eng mashhur loyihasi - OWASP Top 10 reytingi bo'lib, u dunyo miqyosidagi kiber-xavflar va zaifliklarni tahlil qilib, eng xavfli 10 ta xavfsizlik kamchiliklari ro'yxatini taqdim etadi.\n\nEng so'nggi OWASP Top 10 standartiga kiritilgan muhim zaifliklar toifalari:\n1. Broken Access Control (Kirish huquqlarining buzilishi): Foydalanuvchi tizimda o'ziga tegishli bo'lmagan boshqa foydalanuvchilarning yoki adminning sahifalarini o'qishi yoki boshqarishi mumkin bo'lgan holat.\n2. Cryptographic Failures (Kriptografik xatoliklar): Maxfiy ma'lumotlarning (parollar, kartalar) shifrlanmay ochiq saqlanishi yoki zaif shifrlash algoritmlaridan foydalanish.\n3. Injection: SQL Injection, Command Injection va LDAP Injection kabi zaifliklar. Bunda zararli buyruqlar serverga yuborilib, ijro ettiriladi.\n4. Insecure Design (Xavfsiz bo'lmagan dizayn): Dastur tuzilayotganda kiberxavfsizlik me'morchiligi boshidan to'g'ri loyihalashtirilmaganligi oqibatida yuzaga keladigan tizimli xatolar."
+      }
+    ]
+  },
+  {
+    "id": "book-kali-linux",
+    "title": "Kali Linux va Penetratsion Testlar",
+    "author": "Oq Shlyapali Xaker",
+    "pages": 250,
+    "category": "Linux",
+    "coverColor": "from-sky-700 to-blue-950",
+    "summary": "Kali Linux operatsion tizimi, undagi kiber-qurollar (Nmap, Metasploit, Hydra) va penetratsion testlar o'tkazish.",
+    "chapters": [
+      {
+        "title": "1-Bob: Kali Linux muhiti va kiber-qurollar",
+        "content": "Kali Linux - bu kiberxavfsizlik mutaxassislari, axborot xavfsizligi auditorlari va penetratsion test o'tkazuvchilar (Pentesterlar) uchun maxsus ishlab chiqilgan Debian oilasiga mansub operatsion tizimdir. Uni OffSec (Offensive Security) kompaniyasi rivojlantiradi.\n\nKali Linux tizimida kiberxavfsizlik sinovlarini o'tkazish uchun 600 dan ortiq tayyor kiber-qurollar va asboblar valyutalangan holda o'rnatilgan bo'ladi. Ular quyidagi toifalarga bo'linadi:\n- Tarmoq skanerlari: Tarmoq tuzilishini va ochiq portlarni aniqlash uchun (eng asosiysi - Nmap).\n- Veb-zaiflik skanerlari: Nikto, OWASP ZAP, Burp Suite (so'rovlarni ushlab tahlil qiluvchi proxy).\n- Parollarni buzuvchi (Brute-force) qurollar: Hydra (tarmoq xizmatlari parolini terish), John the Ripper / Hashcat (xesh parollarni buzish).\n- Simli va simsiz tarmoqlar auditi: aircrack-ng vositalar majmuasi.\n- Ekspluatatsiya vositalari: Metasploit Framework (tayyor exploitlar yordamida tizimga kirish vositasi)."
+      }
+    ]
+  }
+]

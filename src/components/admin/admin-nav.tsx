@@ -14,6 +14,7 @@ const links = [
   { href: "/admin/sozlamalar", label: "Sozlamalar" },
   { href: "/admin/journal", label: "Jurnal" },
   { href: "/admin/cybertech-testlar", label: "CT Testlar" },
+  { href: "/admin/cybertech-kitoblar", label: "CT Kitoblar" },
   { href: "/admin/cybertech-testlar/ai-generator", label: "✦ AI Test Generator" },
 ];
 

@@ -41,6 +41,7 @@ import {
   AlertTriangle,
   Database,
   Gamepad2,
+  X,
 } from "lucide-react";
 import { createClient, createCleanPublicClient } from "@/lib/supabase/client";
 
@@ -1893,6 +1894,8 @@ export default function UltimateCyberTechPage() {
   const [binaryActive, setBinaryActive] = useState(false);
   const [binaryDifficulty, setBinaryDifficulty] = useState<"oson" | "o'rta" | "qiyin">("o'rta");
   const [binarySelectedTime, setBinarySelectedTime] = useState<number>(30);
+  const [binaryAnsweringDelay, setBinaryAnsweringDelay] = useState(false);
+  const [binarySelectedOption, setBinarySelectedOption] = useState<string | null>(null);
 
   // Game 3: Port Shield (Port Qalqoni)
   const [portActive, setPortActive] = useState(false);
@@ -2002,7 +2005,12 @@ export default function UltimateCyberTechPage() {
   };
 
   const handleBinaryAnswer = (selected: string) => {
-    if (selected === binaryAnswer) {
+    if (binaryAnsweringDelay) return;
+    setBinarySelectedOption(selected);
+    setBinaryAnsweringDelay(true);
+
+    const isCorrect = selected === binaryAnswer;
+    if (isCorrect) {
       playClickSound();
       setBinaryScore(prev => prev + 1);
       
@@ -2011,7 +2019,6 @@ export default function UltimateCyberTechPage() {
       const newPts = userPoints + added;
       setUserPoints(newPts);
       pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, newPts);
-      generateBinaryQuestion();
     } else {
       playBuzzSound();
       // Deduct HP immediately on wrong answer
@@ -2019,8 +2026,14 @@ export default function UltimateCyberTechPage() {
       const newPts = Math.max(0, userPoints - penalty);
       setUserPoints(newPts);
       pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, newPts);
-      generateBinaryQuestion();
     }
+
+    // Delay next question by 1500ms to prevent click farming/spamming and show visual feedback
+    setTimeout(() => {
+      setBinaryAnsweringDelay(false);
+      setBinarySelectedOption(null);
+      generateBinaryQuestion();
+    }, 1500);
   };
 
   // ── Port Shield (Port Qalqoni) Handlers ────────────────────────────────────
@@ -2105,6 +2118,29 @@ export default function UltimateCyberTechPage() {
     { sender: "mentor", text: "Salom! Men Kiber-Mentor yordamchiman. O'rganayotgan darslaringiz bo'yicha savollaringiz bormi?" }
   ]);
   const [mentorInput, setMentorInput] = useState("");
+
+  const [activeTipIdx, setActiveTipIdx] = useState(0);
+  const [tipsVisible, setTipsVisible] = useState(true);
+
+  const MENTOR_TIPS = [
+    "Parolingizni kamida 12 ta harf va belgidan iborat murakkab qiling! 🔐",
+    "Spear phishing - bu faqat ma'lum bir odamga moslashtirilgan soxta xatdir! 🏹",
+    "Caesar shifrini yechish uchun harflarni siljitish kifoya! 🔄",
+    "MitM (Man-in-the-Middle) hujumlaridan saqlanish uchun HTTPS ishlating! 🛡️",
+    "Wi-Fi xavfsizligi uchun WPA3 eng mukammal standart hisoblanadi! 📡",
+    "Port skanerlash ochiq eshiklarni qidirishga o'xshaydi! 🚪",
+    "Kali Linux tizimida 600 dan ortiq tayyor kiber-qurollar bor! 🐉",
+    "Ijtimoiy muhandislikda eng zaif nuqta inson omili hisoblanadi! 👤",
+  ];
+
+  useEffect(() => {
+    if (!mentorOpen) {
+      const interval = setInterval(() => {
+        setActiveTipIdx((prev) => (prev + 1) % MENTOR_TIPS.length);
+      }, 12000);
+      return () => clearInterval(interval);
+    }
+  }, [mentorOpen]);
 
   // ==========================================
   // 3. SOUND SYNTHESIS via AudioContext (0-byte retro 8-bit sound effects)
@@ -5699,16 +5735,38 @@ export default function UltimateCyberTechPage() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
-                          {binaryOptions.map((opt) => (
-                            <button
-                              key={opt}
-                              onClick={() => handleBinaryAnswer(opt)}
-                              className="py-3 px-4 bg-white/5 border border-white/10 hover:border-emerald-400 rounded-xl text-xs font-mono text-slate-200 hover:text-white transition duration-200 cursor-pointer"
-                            >
-                              {opt}
-                            </button>
-                          ))}
+                          {binaryOptions.map((opt) => {
+                            const isSelected = binarySelectedOption === opt;
+                            const isCorrect = opt === binaryAnswer;
+                            const hasAnswered = binarySelectedOption !== null;
+                            let btnStyle = "bg-white/5 border-white/10 hover:border-emerald-400 text-slate-200 hover:text-white";
+                            if (hasAnswered) {
+                              if (isCorrect) {
+                                btnStyle = "bg-emerald-600/20 border-emerald-500 text-emerald-400 font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse";
+                              } else if (isSelected) {
+                                btnStyle = "bg-rose-600/20 border-rose-500 text-rose-400 font-bold shadow-[0_0_15px_rgba(239,68,68,0.3)]";
+                              } else {
+                                btnStyle = "bg-white/[0.01] border-white/5 text-slate-600 opacity-40";
+                              }
+                            }
+                            return (
+                              <button
+                                key={opt}
+                                disabled={hasAnswered}
+                                onClick={() => handleBinaryAnswer(opt)}
+                                className={`py-3 px-4 border rounded-xl text-xs font-mono transition duration-200 ${btnStyle} ${hasAnswered ? "cursor-not-allowed" : "cursor-pointer"}`}
+                              >
+                                {opt}
+                              </button>
+                            );
+                          })}
                         </div>
+                        {binarySelectedOption !== null && (
+                          <div className="text-xs font-mono text-cyan-400 animate-pulse flex items-center justify-center gap-1.5 mt-4">
+                            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+                            Keyingi savol yuklanmoqda...
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="py-8 space-y-6">
@@ -5992,13 +6050,70 @@ export default function UltimateCyberTechPage() {
           ======================================================= */}
       <div className="fixed bottom-4 right-4 z-50">
         {!mentorOpen ? (
-          <button
-            onClick={() => { playClickSound(); setMentorOpen(true); }}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-[#00D1FF] to-[#6C63FF] text-[#0B0F1A] shadow-2xl hover:brightness-110 transition animate-glow-pulse"
-            title="Kiber AI Mentor bilan gaplashish"
-          >
-            <MessageSquare className="h-5 w-5" />
-          </button>
+          <div className="flex flex-col items-end gap-2 max-w-xs sm:max-w-sm pointer-events-none">
+            {/* Speech bubble tips */}
+            {tipsVisible && (
+              <div className="bg-[#0e1328]/95 border border-[#00D1FF]/30 text-xs text-cyan-100 rounded-2xl px-4 py-3 shadow-xl backdrop-blur relative pointer-events-auto select-none animate-success-pop flex items-start gap-2.5 max-w-[240px] sm:max-w-[280px]">
+                <div className="flex-1 leading-normal font-sans">
+                  {MENTOR_TIPS[activeTipIdx]}
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); playClickSound(); setTipsVisible(false); }}
+                  className="text-slate-400 hover:text-white transition shrink-0 p-0.5"
+                  title="Maslahatni berkitish"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+                {/* Speech bubble pointer */}
+                <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-[#0e1328] border-r border-b border-[#00D1FF]/30 transform rotate-45" />
+              </div>
+            )}
+
+            {/* Glowing Pixel Robot Companion */}
+            <button
+              onClick={() => { playClickSound(); setMentorOpen(true); }}
+              className="group pointer-events-auto relative flex flex-col items-center justify-center transition-transform hover:scale-110 active:scale-95 duration-300"
+              title="Mening Kiber-Mentoringiz bilan gaplashish!"
+            >
+              {/* Outer Pulsing Glow */}
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-500 opacity-70 blur-md group-hover:opacity-100 transition duration-300 animate-pulse" />
+              
+              {/* Robot Frame */}
+              <div className="relative h-14 w-14 rounded-2xl bg-[#0b0f19] border border-cyan-400/40 hover:border-cyan-400 flex items-center justify-center text-white shadow-2xl overflow-hidden p-2">
+                {/* SVG Robot Sprite */}
+                <svg viewBox="0 0 64 64" className="w-full h-full text-cyan-400 animate-pulse">
+                  {/* Antennas */}
+                  <rect x="29" y="4" width="6" height="8" fill="currentColor" opacity="0.8" />
+                  <circle cx="32" cy="4" r="4" fill="#6C63FF" />
+                  
+                  {/* Head */}
+                  <rect x="12" y="12" width="40" height="32" rx="8" fill="#131a35" stroke="currentColor" strokeWidth="3" />
+                  
+                  {/* Glowing Eyes */}
+                  <circle cx="24" cy="26" r="4" fill="#00D1FF" className="animate-ping" style={{ animationDuration: '3s' }} />
+                  <circle cx="24" cy="26" r="3.5" fill="#00D1FF" />
+                  
+                  <circle cx="40" cy="26" r="4" fill="#00D1FF" className="animate-ping" style={{ animationDuration: '3s' }} />
+                  <circle cx="40" cy="26" r="3.5" fill="#00D1FF" />
+                  
+                  {/* Digital Mouth */}
+                  <path d="M22 36 Q32 40 42 36" stroke="#6C63FF" strokeWidth="3" strokeLinecap="round" fill="none" />
+                  
+                  {/* Cyber Cheeks */}
+                  <rect x="16" y="30" width="4" height="2" rx="1" fill="#ff0055" />
+                  <rect x="44" y="30" width="4" height="2" rx="1" fill="#ff0055" />
+                </svg>
+
+                {/* Animated Scanline overlay inside robot screen */}
+                <div className="absolute inset-0 bg-scanlines opacity-[0.15] pointer-events-none" />
+              </div>
+
+              {/* Little label beneath companion */}
+              <span className="mt-1 text-[9px] font-black font-mono tracking-widest text-[#00D1FF]/70 group-hover:text-cyan-300 uppercase scale-90 transition-colors">
+                MENTOR.AI
+              </span>
+            </button>
+          </div>
         ) : (
           <div className="w-80 sm:w-96 rounded-2xl border border-cyan-500/20 bg-[#0e1328]/95 shadow-2xl backdrop-blur flex flex-col h-[400px] overflow-hidden animate-success-pop">
             
