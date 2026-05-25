@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Sparkles, X, Send, Bot, Terminal, CornerDownLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Sparkles, X, Send, Bot, Terminal, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Message {
@@ -13,6 +13,7 @@ interface Message {
 export function CrmCopilot() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [hasScanned, setHasScanned] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -28,6 +29,40 @@ export function CrmCopilot() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Proaktiv tizim tekshiruvi (Scan)
+  const triggerSystemScan = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/crm-agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "[SYSTEM_SCAN]" })
+      });
+
+      const data = await res.json();
+
+      if (!data.error && data.message) {
+        setMessages(prev => [...prev, {
+          sender: "ai",
+          text: `🔍 *KUNLIK TIZIM TAHLILI VA EHM ESLATMALARI:*\n\n${data.message}`,
+          isQuery: true
+        }]);
+      }
+    } catch (err: any) {
+      console.error("System scan failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenClick = () => {
+    setIsOpen(true);
+    if (!hasScanned) {
+      setHasScanned(true);
+      triggerSystemScan();
+    }
+  };
 
   const handleSend = async (textToSend?: string) => {
     const input = textToSend || prompt;
@@ -76,17 +111,17 @@ export function CrmCopilot() {
   };
 
   const quickPrompts = [
-    "O'quvchi qo'sh: Murodov Shahboz, tel +998931112233, Kurs: Kiberxavfsizlik",
+    "Kunlik tizim hisoboti [SYSTEM_SCAN]",
+    "O'quvchi qo'sh: Sardor Qobilov, tel +998991234567, Kurs: Dasturlash",
     "Kompyuter savodxonligida nechta o'quvchi bor?",
-    "Anvar Qobilov uchun naqd 300 000 to'lov qo'sh",
-    "Qarzlar va talabalar holati bo'yicha hisobot"
+    "Sardor Qobilov uchun naqd 300 000 to'lov qo'sh"
   ];
 
   return (
     <>
       {/* Floating Trigger Bubble */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={handleOpenClick}
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#00D1FF] to-[#6c63ff] text-white shadow-lg hover:shadow-cyan-500/20 hover:scale-110 active:scale-95 transition-all duration-300 border border-white/20 animate-pulse cursor-pointer"
         title="AI CRM Yordamchi"
       >
@@ -147,7 +182,6 @@ export function CrmCopilot() {
                   }`}>
                     {msg.isQuery ? (
                       <div className="prose prose-invert prose-xs max-w-none text-slate-300 leading-relaxed font-mono">
-                        {/* Custom simplistic parser to render basic markdown elements inside query responses */}
                         {msg.text.split("\n").map((line, lIdx) => {
                           if (line.startsWith("### ")) return <h5 key={lIdx} className="text-cyan-400 font-extrabold mt-3 mb-1 text-[11px] uppercase tracking-wider">{line.replace("### ", "")}</h5>;
                           if (line.startsWith("## ")) return <h4 key={lIdx} className="text-cyan-400 font-black mt-4 mb-2 text-xs uppercase tracking-widest">{line.replace("## ", "")}</h4>;
