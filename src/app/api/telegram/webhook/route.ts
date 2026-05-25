@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processCrmAgentPrompt } from "@/lib/crm-agent-helper";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Telegram API yordamchilari
 async function sendTelegramMessage(chatId: string, text: string) {
@@ -13,8 +14,8 @@ async function sendTelegramMessage(chatId: string, text: string) {
       body: JSON.stringify({
         chat_id: chatId,
         text: text,
-        parse_mode: "Markdown"
-      })
+        parse_mode: "Markdown",
+      }),
     });
 
     if (!res.ok) {
@@ -24,8 +25,8 @@ async function sendTelegramMessage(chatId: string, text: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
-          text: text
-        })
+          text: text,
+        }),
       });
     }
   } catch (err) {
@@ -43,12 +44,41 @@ async function sendTelegramChatAction(chatId: string, action: string) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: chatId,
-        action: action
-      })
+        action: action,
+      }),
     });
   } catch (err) {
     console.error("sendTelegramChatAction error:", err);
   }
+}
+
+// Gemini API orqali audio transkripsiya
+async function transcribeAudioWithGemini(audioBuffer: ArrayBuffer): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY sozlanmagan");
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+  // ArrayBuffer ni base64 ga aylantirish
+  const bytes = new Uint8Array(audioBuffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64Audio = btoa(binary);
+
+  const result = await model.generateContent([
+    {
+      inlineData: {
+        mimeType: "audio/ogg",
+        data: base64Audio,
+      },
+    },
+    "Ushbu ovozli xabarni o'zbek tilida aniq transkripsiya qiling. Faqat transkripsiya matnini qaytaring, boshqa hech narsa yozmang.",
+  ]);
+
+  return result.response.text().trim();
 }
 
 export async function POST(request: NextRequest) {
@@ -70,7 +100,10 @@ export async function POST(request: NextRequest) {
     // 1. Faqat ruxsat berilgan admin chat_id'sini tekshirish (whitelist)
     const allowedChatId = process.env.TELEGRAM_CHAT_ID;
     if (allowedChatId && senderChatId !== allowedChatId) {
-      await sendTelegramMessage(senderChatId, "❌ *Kirish taqiqlangan!* Siz ushbu CRM tizimining Bosh AI Boshqaruvchisi botiga ma'mur emassiz.");
+      await sendTelegramMessage(
+        senderChatId,
+        "❌ *Kirish taqiqlangan!* Siz ushbu CRM tizimining Bosh AI Boshqaruvchisi botiga ma'mur emassiz."
+      );
       return NextResponse.json({ ok: true });
     }
 
@@ -82,51 +115,50 @@ export async function POST(request: NextRequest) {
 
       const fileId = message.voice.file_id;
       const botToken = process.env.TELEGRAM_BOT_TOKEN;
-      const apiKey = process.env.GEMINI_API_KEY;
 
-      if (!botToken || !apiKey) {
-        await sendTelegramMessage(senderChatId, "⚠️ Serverda Telegram token yoki API Key sozlanmagan.");
+      if (!botToken) {
+        await sendTelegramMessage(senderChatId, "⚠️ Serverda Telegram token sozlanmagan.");
         return NextResponse.json({ ok: true });
       }
 
       // a) Fayl manzilini olish
-      const fileInfoRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+      const fileInfoRes = await fetch(
+        `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`
+      );
       const fileInfo = await fileInfoRes.json();
       const filePath = fileInfo.result?.file_path;
 
-      if (filePath) {
-        // b) Ovozli (.ogg) faylni yuklash
-        const fileUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
-        const voiceFileRes = await fetch(fileUrl);
-        const voiceBuffer = await voiceFileRes.arrayBuffer();
+      if (!filePath) {
+        await sendTelegramMessage(senderChatId, "⚠️ Ovozli xabarni yuklab olishda muammo yuz berdi.");
+        return NextResponse.json({ ok: true });
+      }
 
-        // c) OpenAI Whisper API orqali matnga aylantirish (Transkripsiya)
-        const formData = new FormData();
-        // Modern File object guarantees proper multipart filename & content-type boundary in Vercel/Node environment
-        const fileObj = new File([voiceBuffer], "voice.ogg", { type: "audio/ogg" });
-        formData.append("file", fileObj);
-        formData.append("model", "whisper-1");
+      // b) Ovozli (.ogg) faylni yuklash
+      const fileUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
+      const voiceFileRes = await fetch(fileUrl);
+      const voiceBuffer = await voiceFileRes.arrayBuffer();
 
-        const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`
-          },
-          body: formData
-        });
-
-        const transcriptionData = await whisperRes.json();
-        promptText = transcriptionData.text || "";
+      // c) Gemini API orqali transkripsiya
+      try {
+        promptText = await transcribeAudioWithGemini(voiceBuffer);
 
         if (promptText.trim()) {
-          await sendTelegramMessage(senderChatId, `🎤 *Eshityapman... Ovozli buyrug'ingiz:* \n_"${promptText}"_`);
+          await sendTelegramMessage(
+            senderChatId,
+            `🎤 *Ovozingizni eshitdim:*\n_"${promptText}"_`
+          );
         } else {
-          const errDetail = transcriptionData.error?.message || JSON.stringify(transcriptionData);
-          await sendTelegramMessage(senderChatId, `⚠️ *Ovozli transkripsiya xatosi:* \n${errDetail}`);
+          await sendTelegramMessage(
+            senderChatId,
+            "⚠️ Ovozli xabardan matn ajratib olinmadi. Aniqroq gapiring va qayta yuboring."
+          );
           return NextResponse.json({ ok: true });
         }
-      } else {
-        await sendTelegramMessage(senderChatId, "⚠️ Ovozli xabarni yuklab olishda muammo yuz berdi.");
+      } catch (transcribeErr: any) {
+        await sendTelegramMessage(
+          senderChatId,
+          `⚠️ *Transkripsiya xatosi:*\n${transcribeErr.message || "Noma'lum xato"}`
+        );
         return NextResponse.json({ ok: true });
       }
     } else if (message.text) {
@@ -144,10 +176,10 @@ export async function POST(request: NextRequest) {
       const aiAction = await processCrmAgentPrompt(promptText);
 
       // Natijani Telegram bot orqali adminga chiroyli javob yuborish
-      const responseMessage = `🤖 *AI CRM Boshqaruvchi:* \n\n${aiAction.message}`;
+      const responseMessage = `🤖 *AI CRM Boshqaruvchi:*\n\n${aiAction.message}`;
       await sendTelegramMessage(senderChatId, responseMessage);
     } catch (err: any) {
-      await sendTelegramMessage(senderChatId, `❌ *Amal bajarilmadi:* \n${err.message || err}`);
+      await sendTelegramMessage(senderChatId, `❌ *Amal bajarilmadi:*\n${err.message || err}`);
     }
 
     return NextResponse.json({ ok: true });
