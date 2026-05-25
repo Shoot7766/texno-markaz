@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import type { Course, Group, Lead, LeadStatus, Package } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { convertLeadToStudent, updateLeadStatus } from "@/lib/actions/crm";
+import { convertLeadToStudent, deleteLead, updateLeadStatus } from "@/lib/actions/crm";
 import { formatDate } from "@/lib/format";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Trash2 } from "lucide-react";
 
 const statuses: { value: LeadStatus; label: string }[] = [
   { value: "yangi", label: "Yangi" },
@@ -29,6 +29,7 @@ export function LeadsTable({ initialLeads, courses, packages, groups }: Props) {
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "">("");
   const [busy, setBusy] = useState<string | null>(null);
   const [convertId, setConvertId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState({
@@ -58,6 +59,17 @@ export function LeadsTable({ initialLeads, courses, packages, groups }: Props) {
       router.refresh();
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function onDelete(id: string) {
+    setBusy(id);
+    try {
+      await deleteLead(id);
+      router.refresh();
+    } finally {
+      setBusy(null);
+      setDeleteId(null);
     }
   }
 
@@ -166,6 +178,14 @@ export function LeadsTable({ initialLeads, courses, packages, groups }: Props) {
                       className="rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                     >
                       O‘quvchiga aylantirish
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy === l.id}
+                      onClick={() => setDeleteId(l.id)}
+                      className="rounded bg-red-100 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-200 disabled:opacity-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                     {busy === l.id && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
                   </div>
@@ -295,6 +315,21 @@ export function LeadsTable({ initialLeads, courses, packages, groups }: Props) {
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"
               >
                 Saqlash
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="rounded-2xl bg-white p-6 shadow-xl max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-slate-900">Arizani o'chirishni tasdiqlang</h3>
+            <p className="mt-2 text-sm text-slate-600">Bu amal qaytarib bo'lmaydi. Arizani o'chirishga ishonchingiz komilmi?</p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button type="button" onClick={() => setDeleteId(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm">Bekor</button>
+              <button type="button" disabled={busy === deleteId} onClick={() => onDelete(deleteId)} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">
+                {busy === deleteId ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ha, o'chir"}
               </button>
             </div>
           </div>

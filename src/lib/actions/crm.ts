@@ -410,3 +410,18 @@ export async function savePublicStats(patch: Record<string, unknown>) {
   revalidatePath("/");
   revalidatePath("/admin");
 }
+
+export async function deleteLead(id: string) {
+  const { supabase, user } = await requireAdmin();
+  const { error } = await supabase.from("leads").delete().eq("id", id);
+  if (error) throw new Error(error.message ?? "Ariza o'chirilmadi");
+  await supabase.from("activity_logs").insert({
+    actor_id: user.id,
+    action: "lead_delete",
+    entity_type: "lead",
+    entity_id: id,
+    details: { id },
+  });
+  revalidatePath("/admin/arizalar");
+  revalidatePath("/admin");
+}

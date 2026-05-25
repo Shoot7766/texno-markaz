@@ -64,6 +64,7 @@ async function transcribeAudio(audioBuffer: ArrayBuffer): Promise<string> {
     const fileObj = new File([audioBuffer], "voice.ogg", { type: "audio/ogg" });
     formData.append("file", fileObj);
     formData.append("model", "whisper-1");
+    formData.append("language", "uz");
 
     const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
       method: "POST",
@@ -101,7 +102,7 @@ async function transcribeAudio(audioBuffer: ArrayBuffer): Promise<string> {
           data: base64Audio,
         },
       },
-      "Ushbu ovozli xabarni o'zbek tilida aniq transkripsiya qiling. Faqat transkripsiya matnini qaytaring, boshqa hech narsa yozmang.",
+      "Bu ovozli xabar O'zbek tilida. Uni aniq transkripsiya qiling. Transkripsiyadan boshqa hech narsa yozmang. Sheva yoki ruscha so'zlar bo'lsa ham o'zbek harflarida yozing.",
     ]);
 
     const text = result.response.text().trim();

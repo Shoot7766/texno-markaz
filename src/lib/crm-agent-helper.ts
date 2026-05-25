@@ -155,6 +155,62 @@ Siz aniqlashi mumkin bo'lgan ACTION'lar va ularning JSON formatlari:
   "message": "Markdown formatida chiroyli hisobot, javob yoki kunlik checklist..."
 }
 
+7. O'quvchi ma'lumotini yangilash:
+{
+  "action": "UPDATE_STUDENT",
+  "params": {
+    "student_id": "TALABA_UUID",
+    "first_name": "Yangi ism" (optional),
+    "last_name": "Yangi familiya" (optional),
+    "phone": "+998..." (optional),
+    "parent_phone": "+998..." (optional),
+    "course_id": "UUID" (optional),
+    "group_id": "UUID" (optional),
+    "total_amount": 500000 (optional),
+    "discount": 0 (optional),
+    "payment_due_date": "YYYY-MM-DD" (optional),
+    "status": "active"|"finished"|"paused" (optional),
+    "comment": "Izoh" (optional)
+  },
+  "message": "O'quvchi ma'lumoti yangilandi!"
+}
+
+8. Arizani o'chirish:
+{
+  "action": "DELETE_LEAD",
+  "params": {
+    "lead_id": "LEAD_UUID"
+  },
+  "message": "Ariza o'chirildi!"
+}
+
+9. Guruh jadvalini yangilash:
+{
+  "action": "UPDATE_GROUP",
+  "params": {
+    "group_id": "GURUH_UUID",
+    "schedule_days": ["Dush", "Chor", "Jum"] (optional),
+    "schedule_time": "16:00" (optional),
+    "teacher": "O'qituvchi ismi" (optional),
+    "max_students": 15 (optional),
+    "is_active": true (optional)
+  },
+  "message": "Guruh jadvali yangilandi!"
+}
+
+10. Davomat belgilash:
+{
+  "action": "MARK_ATTENDANCE",
+  "params": {
+    "group_id": "GURUH_UUID" (optional),
+    "student_id": "TALABA_UUID" (optional, agar guruh bo'lmasa),
+    "date": "YYYY-MM-DD",
+    "status": "keldi"|"kelmadi"|"kechikdi",
+    "mark_all": true (optional, guruh a'zolarini hammasini belgilash)
+  },
+  "message": "Davomat belgilandi!"
+}
+
 Agar ma'lumot yetarli bo'lmasa yoki tushunarsiz so'rov bo'lsa:
 {
   "action": "NEED_INFO",
@@ -306,6 +362,100 @@ Muhim qoidalar:
       entity_id: p.lead_id,
       details: { status: p.status, admin_note: p.admin_note },
     });
+
+  } else if (aiAction.action === "UPDATE_STUDENT") {
+    const p = aiAction.params;
+    const patch: Record<string, unknown> = {};
+    if (p.first_name !== undefined) patch.first_name = p.first_name;
+    if (p.last_name !== undefined) patch.last_name = p.last_name;
+    if (p.phone !== undefined) patch.phone = p.phone;
+    if (p.parent_phone !== undefined) patch.parent_phone = p.parent_phone;
+    if (p.course_id !== undefined) patch.course_id = p.course_id;
+    if (p.group_id !== undefined) patch.group_id = p.group_id;
+    if (p.total_amount !== undefined) patch.total_amount = Number(p.total_amount);
+    if (p.discount !== undefined) patch.discount = Number(p.discount);
+    if (p.payment_due_date !== undefined) patch.payment_due_date = p.payment_due_date;
+    if (p.status !== undefined) patch.status = p.status;
+    if (p.comment !== undefined) patch.comment = p.comment;
+    if (Object.keys(patch).length > 0) {
+      const { error } = await serviceClient.from("students").update(patch).eq("id", p.student_id);
+      if (error) throw new Error(error.message);
+      await serviceClient.from("activity_logs").insert({
+        action: "student_update",
+        entity_type: "student",
+        entity_id: p.student_id,
+        details: patch,
+      });
+    }
+
+  } else if (aiAction.action === "DELETE_LEAD") {
+    const p = aiAction.params;
+    const { error } = await serviceClient.from("leads").delete().eq("id", p.lead_id);
+    if (error) throw new Error(error.message);
+    await serviceClient.from("activity_logs").insert({
+      action: "lead_delete",
+      entity_type: "lead",
+      entity_id: p.lead_id,
+      details: { lead_id: p.lead_id },
+    });
+
+  } else if (aiAction.action === "UPDATE_GROUP") {
+    const p = aiAction.params;
+    const patch: Record<string, unknown> = {};
+    if (p.schedule_days !== undefined) patch.schedule_days = p.schedule_days;
+    if (p.schedule_time !== undefined) patch.schedule_time = p.schedule_time;
+    if (p.teacher !== undefined) patch.teacher = p.teacher;
+    if (p.max_students !== undefined) patch.max_students = Number(p.max_students);
+    if (p.is_active !== undefined) patch.is_active = p.is_active;
+    if (p.schedule_days || p.schedule_time) {
+      patch.schedule = `${(p.schedule_days || []).join("/")} ${p.schedule_time || ""}`;
+    }
+    if (Object.keys(patch).length > 0) {
+      const { error } = await serviceClient.from("groups").update(patch).eq("id", p.group_id);
+      if (error) throw new Error(error.message);
+      await serviceClient.from("activity_logs").insert({
+        action: "group_update",
+        entity_type: "group",
+        entity_id: p.group_id,
+        details: patch,
+      });
+    }
+
+  } else if (aiAction.action === "MARK_ATTENDANCE") {
+    const p = aiAction.params;
+    const date = p.date || new Date().toISOString().slice(0, 10);
+    if (p.mark_all && p.group_id) {
+      // Guruhning barcha faol o'quvchilarini belgilash
+      const { data: groupStudents } = await serviceClient
+        .from("students")
+        .select("id")
+        .eq("group_id", p.group_id)
+        .eq("status", "active");
+      if (groupStudents) {
+        for (const st of groupStudents) {
+          await serviceClient.from("attendance").delete()
+            .eq("student_id", st.id)
+            .eq("attendance_date", date)
+            .eq("group_id", p.group_id);
+          await serviceClient.from("attendance").insert({
+            student_id: st.id,
+            group_id: p.group_id,
+            attendance_date: date,
+            status: p.status || "keldi",
+          });
+        }
+      }
+    } else if (p.student_id) {
+      await serviceClient.from("attendance").delete()
+        .eq("student_id", p.student_id)
+        .eq("attendance_date", date);
+      await serviceClient.from("attendance").insert({
+        student_id: p.student_id,
+        group_id: p.group_id || null,
+        attendance_date: date,
+        status: p.status || "keldi",
+      });
+    }
   }
 
   return aiAction;

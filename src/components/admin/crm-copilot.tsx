@@ -130,7 +130,7 @@ export function CrmCopilot() {
 
       {/* Slide-out Cyberpunk Panel */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-end p-4 sm:p-6 bg-black/40 backdrop-blur-xs animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-end justify-end p-4 sm:p-6 bg-black/50 animate-fade-in">
           {/* Panel click-outside backdrop shadow */}
           <div className="absolute inset-0 -z-10" onClick={() => setIsOpen(false)} />
 
