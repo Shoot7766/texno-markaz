@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { LogOut, Menu } from "lucide-react";
 import { AdminNav } from "./admin-nav";
 import { useState } from "react";
+import { CrmCopilot } from "./crm-copilot";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -66,6 +67,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
         <div className="flex-1 bg-slate-100 p-4 text-slate-900 md:p-8">{children}</div>
       </div>
+      <CrmCopilot />
     </div>
   );
 }

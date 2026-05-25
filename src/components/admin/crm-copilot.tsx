@@ -1,0 +1,220 @@
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import { Sparkles, X, Send, Bot, Terminal, CornerDownLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+interface Message {
+  sender: "user" | "ai";
+  text: string;
+  isQuery?: boolean;
+}
+
+export function CrmCopilot() {
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      sender: "ai",
+      text: "Assalomu alaykum! Men Texno Markaz virtual yordamchisiman. CRM tizimidagi barcha amallarni (o'quvchi qo'shish, to'lovlar, guruhlar yaratish yoki qarzlar bo'yicha hisobotlar olish) bajarishim mumkin.\n\nMenga vazifa bering, masalan:\n`\"Yangi o'quvchi Sardor Qobilov, tel +998991234567 ni Dasturlash kursiga qo'sh\"`"
+    }
+  ]);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll inside chat
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const handleSend = async (textToSend?: string) => {
+    const input = textToSend || prompt;
+    if (!input.trim() || loading) return;
+
+    // Add user message
+    setMessages(prev => [...prev, { sender: "user", text: input }]);
+    if (!textToSend) setPrompt("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/admin/crm-agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: input })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        setMessages(prev => [...prev, { sender: "ai", text: `⚠️ Xatolik yuz berdi: ${data.error}` }]);
+      } else {
+        setMessages(prev => [...prev, {
+          sender: "ai",
+          text: data.message || "Amal muvaffaqiyatli bajarildi!",
+          isQuery: data.action === "QUERY_DATA"
+        }]);
+
+        // Agar ma'lumot yozish amali bajarilgan bo'lsa, CRM sahifasini yangilaymiz
+        if (data.action && data.action !== "QUERY_DATA" && data.action !== "NEED_INFO") {
+          router.refresh();
+        }
+      }
+    } catch (err: any) {
+      setMessages(prev => [...prev, { sender: "ai", text: `❌ Tarmoq xatosi: ${err.message || err}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const quickPrompts = [
+    "O'quvchi qo'sh: Murodov Shahboz, tel +998931112233, Kurs: Kiberxavfsizlik",
+    "Kompyuter savodxonligida nechta o'quvchi bor?",
+    "Anvar Qobilov uchun naqd 300 000 to'lov qo'sh",
+    "Qarzlar va talabalar holati bo'yicha hisobot"
+  ];
+
+  return (
+    <>
+      {/* Floating Trigger Bubble */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#00D1FF] to-[#6c63ff] text-white shadow-lg hover:shadow-cyan-500/20 hover:scale-110 active:scale-95 transition-all duration-300 border border-white/20 animate-pulse cursor-pointer"
+        title="AI CRM Yordamchi"
+      >
+        <Sparkles className="h-6 w-6 animate-spin-slow" />
+      </button>
+
+      {/* Slide-out Cyberpunk Panel */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-end p-4 sm:p-6 bg-black/40 backdrop-blur-xs animate-fade-in">
+          {/* Panel click-outside backdrop shadow */}
+          <div className="absolute inset-0 -z-10" onClick={() => setIsOpen(false)} />
+
+          <div className="flex h-[80vh] w-full max-w-md flex-col rounded-2xl border border-white/10 bg-[#0c0f1e]/95 text-white shadow-2xl overflow-hidden tm-ring-glow animate-success-pop">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 bg-[#080a14] px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping absolute inset-0" />
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 relative" />
+                </div>
+                <span className="text-xs font-black tracking-widest uppercase text-cyan-400 flex items-center gap-1.5 font-mono">
+                  <Terminal className="h-3.5 w-3.5" /> AI Copilot Online
+                </span>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="rounded-lg p-1 text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="h-4.5 w-4.5" />
+              </button>
+            </div>
+
+            {/* Messages Body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 font-sans text-xs scrollbar-thin scrollbar-thumb-white/10">
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex gap-3 max-w-[85%] ${
+                    msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
+                  }`}
+                >
+                  {/* Icon */}
+                  <div className={`flex h-7 w-7 shrink-0 select-none items-center justify-center rounded-lg border text-white ${
+                    msg.sender === "user"
+                      ? "bg-slate-800 border-white/10"
+                      : "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
+                  }`}>
+                    {msg.sender === "user" ? <span className="font-bold text-[10px]">AD</span> : <Bot className="h-4 w-4" />}
+                  </div>
+
+                  {/* Bubble */}
+                  <div className={`rounded-xl px-3 py-2 leading-relaxed ${
+                    msg.sender === "user"
+                      ? "bg-[#6c63ff]/20 border border-[#6c63ff]/30 text-white rounded-tr-none"
+                      : msg.isQuery
+                        ? "bg-[#080a14] border border-cyan-500/10 text-slate-300 rounded-tl-none font-mono whitespace-pre-wrap"
+                        : "bg-white/5 border border-white/10 text-slate-300 rounded-tl-none whitespace-pre-wrap"
+                  }`}>
+                    {msg.isQuery ? (
+                      <div className="prose prose-invert prose-xs max-w-none text-slate-300 leading-relaxed font-mono">
+                        {/* Custom simplistic parser to render basic markdown elements inside query responses */}
+                        {msg.text.split("\n").map((line, lIdx) => {
+                          if (line.startsWith("### ")) return <h5 key={lIdx} className="text-cyan-400 font-extrabold mt-3 mb-1 text-[11px] uppercase tracking-wider">{line.replace("### ", "")}</h5>;
+                          if (line.startsWith("## ")) return <h4 key={lIdx} className="text-cyan-400 font-black mt-4 mb-2 text-xs uppercase tracking-widest">{line.replace("## ", "")}</h4>;
+                          if (line.startsWith("- ") || line.startsWith("* ")) return <div key={lIdx} className="pl-3 flex items-start gap-1.5 py-0.5"><span className="text-cyan-400 select-none">•</span><span>{line.substring(2)}</span></div>;
+                          return <p key={lIdx} className="min-h-[1em] my-1">{line}</p>;
+                        })}
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {loading && (
+                <div className="flex gap-3 max-w-[85%]">
+                  <div className="flex h-7 w-7 select-none items-center justify-center rounded-lg border bg-cyan-500/10 border-cyan-500/30 text-cyan-400">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                  <div className="rounded-xl px-3 py-2 bg-white/5 border border-white/10 text-slate-400 rounded-tl-none font-mono animate-pulse">
+                    Agent so&apos;rovni tahlil qilyapti va bajarmoqda...
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Quick Suggestions (if no conversation or quick pick is needed) */}
+            <div className="p-3 border-t border-white/5 bg-[#080a14]/60 space-y-1.5">
+              <span className="text-[9px] uppercase font-bold tracking-wider text-slate-500">Tezkor namunalar:</span>
+              <div className="flex flex-wrap gap-1">
+                {quickPrompts.map((p, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSend(p)}
+                    disabled={loading}
+                    className="text-[10px] bg-white/5 hover:bg-cyan-500/10 hover:text-cyan-400 border border-white/10 hover:border-cyan-500/20 px-2 py-1 rounded-md transition text-left cursor-pointer disabled:opacity-50"
+                  >
+                    {p.length > 50 ? p.substring(0, 48) + "..." : p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Inputs Footer */}
+            <div className="p-3 bg-[#080a14] border-t border-white/10 flex gap-2 items-center">
+              <textarea
+                placeholder="Buyruq kiriting... (Enter jo'natish)"
+                value={prompt}
+                onChange={e => setPrompt(e.target.value)}
+                onKeyDown={handleKeyPress}
+                disabled={loading}
+                rows={1}
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition resize-none max-h-16"
+              />
+              <button
+                onClick={() => handleSend()}
+                disabled={loading || !prompt.trim()}
+                className="h-10 w-10 flex items-center justify-center rounded-xl bg-[#00D1FF] text-black hover:brightness-110 disabled:opacity-40 disabled:brightness-100 transition cursor-pointer shrink-0"
+              >
+                <Send className="h-4.5 w-4.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
