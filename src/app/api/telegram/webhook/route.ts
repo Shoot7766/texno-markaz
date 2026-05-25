@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processCrmAgentPrompt } from "@/lib/crm-agent-helper";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Telegram API yordamchilari
 async function sendTelegramMessage(chatId: string, text: string) {
@@ -52,33 +51,63 @@ async function sendTelegramChatAction(chatId: string, action: string) {
   }
 }
 
-// Gemini API orqali audio transkripsiya
-async function transcribeAudioWithGemini(audioBuffer: ArrayBuffer): Promise<string> {
+// Ovozni matnga aylantirish — OpenAI Whisper yoki Gemini (key turiga qarab)
+async function transcribeAudio(audioBuffer: ArrayBuffer): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY sozlanmagan");
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const isOpenAI = apiKey.trim().startsWith("sk-");
 
-  // ArrayBuffer ni base64 ga aylantirish
-  const bytes = new Uint8Array(audioBuffer);
-  let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  const base64Audio = btoa(binary);
+  if (isOpenAI) {
+    // ── OpenAI Whisper STT ───────────────────────────────────────────────────
+    const formData = new FormData();
+    const fileObj = new File([audioBuffer], "voice.ogg", { type: "audio/ogg" });
+    formData.append("file", fileObj);
+    formData.append("model", "whisper-1");
 
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        mimeType: "audio/ogg",
-        data: base64Audio,
+    const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: formData,
+    });
+
+    if (!whisperRes.ok) {
+      const errBody = await whisperRes.text();
+      throw new Error(`Whisper xatosi (${whisperRes.status}): ${errBody}`);
+    }
+
+    const data = await whisperRes.json();
+    const text = data.text ?? "";
+    if (!text.trim()) throw new Error("Whisper bo'sh javob qaytardi");
+    return text.trim();
+  } else {
+    // ── Google Gemini 2.0 Flash audio transkripsiya ──────────────────────────
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+    // ArrayBuffer ni base64 ga aylantirish
+    const bytes = new Uint8Array(audioBuffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64Audio = btoa(binary);
+
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          mimeType: "audio/ogg",
+          data: base64Audio,
+        },
       },
-    },
-    "Ushbu ovozli xabarni o'zbek tilida aniq transkripsiya qiling. Faqat transkripsiya matnini qaytaring, boshqa hech narsa yozmang.",
-  ]);
+      "Ushbu ovozli xabarni o'zbek tilida aniq transkripsiya qiling. Faqat transkripsiya matnini qaytaring, boshqa hech narsa yozmang.",
+    ]);
 
-  return result.response.text().trim();
+    const text = result.response.text().trim();
+    if (!text) throw new Error("Gemini bo'sh transkripsiya qaytardi");
+    return text;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -140,7 +169,7 @@ export async function POST(request: NextRequest) {
 
       // c) Gemini API orqali transkripsiya
       try {
-        promptText = await transcribeAudioWithGemini(voiceBuffer);
+        promptText = await transcribeAudio(voiceBuffer);
 
         if (promptText.trim()) {
           await sendTelegramMessage(
