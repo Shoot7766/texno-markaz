@@ -53,97 +53,102 @@ async function sendTelegramChatAction(chatId: string, action: string) {
 
 // Ovozni matnga aylantirish — OpenAI Whisper yoki Gemini (key turiga qarab)
 async function transcribeAudio(audioBuffer: ArrayBuffer): Promise<string> {
-  const googleSttKey = process.env.GOOGLE_STT_API_KEY;
   const aiKey = process.env.GEMINI_API_KEY;
+  const googleSttKey = process.env.GOOGLE_STT_API_KEY;
 
-  // ── 1. Google Cloud Speech-to-Text (uz-UZ, eng aniq) ──────────────────────
-  if (googleSttKey) {
-    const bytes = new Uint8Array(audioBuffer);
-    let binary = "";
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    const base64Audio = btoa(binary);
+  // ── 1. Google Gemini 2.0 Flash (Mutlaqo BEPUL, juda tez va aqlli) ───────────
+  if (aiKey && !aiKey.trim().startsWith("sk-")) {
+    try {
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
+      const genAI = new GoogleGenerativeAI(aiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    const sttRes = await fetch(
-      `https://speech.googleapis.com/v1/speech:recognize?key=${googleSttKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          config: {
-            encoding: "OGG_OPUS",
-            sampleRateHertz: 48000,
-            languageCode: "uz-UZ",
-            alternativeLanguageCodes: ["ru-RU"],
-            model: "latest_long",
-            enableAutomaticPunctuation: true,
-            useEnhanced: true,
-          },
-          audio: { content: base64Audio },
-        }),
+      const bytes = new Uint8Array(audioBuffer);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
       }
-    );
+      const base64Audio = btoa(binary);
 
-    if (!sttRes.ok) {
-      const errBody = await sttRes.text();
-      throw new Error(`Google STT xatosi (${sttRes.status}): ${errBody}`);
+      const result = await model.generateContent([
+        { inlineData: { mimeType: "audio/ogg", data: base64Audio } },
+        "Bu ovozli xabar O'zbek tilida. Uni aniq transkripsiya qiling. Transkripsiyadan boshqa hech narsa yozmang. Sheva yoki ruscha so'zlar bo'lsa ham o'zbek harflarida yozing.",
+      ]);
+
+      const geminiText = result.response.text().trim();
+      if (geminiText) return geminiText;
+    } catch (e) {
+      console.error("Gemini STT xatosi, keyingi provayderga o'tilmoqda:", e);
     }
-
-    const sttData = await sttRes.json();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const transcript = (sttData.results ?? []).map((r: any) => r.alternatives?.[0]?.transcript ?? "").join(" ").trim();
-    if (transcript) return transcript;
-    throw new Error("Google STT: ovozdan matn ajratilmadi. Aniqroq gapiring.");
   }
 
-  // ── 2. OpenAI Whisper (agar sk- key bo'lsa) ───────────────────────────────
+  // ── 2. OpenAI Whisper (agar sk- kaliti bo'lsa) ──────────────────────────────
   if (aiKey?.trim().startsWith("sk-")) {
-    const formData = new FormData();
-    const fileObj = new File([audioBuffer], "voice.ogg", { type: "audio/ogg" });
-    formData.append("file", fileObj);
-    formData.append("model", "whisper-1");
-    formData.append("language", "uz");
+    try {
+      const formData = new FormData();
+      const fileObj = new File([audioBuffer], "voice.ogg", { type: "audio/ogg" });
+      formData.append("file", fileObj);
+      formData.append("model", "whisper-1");
+      formData.append("language", "uz");
 
-    const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${aiKey}` },
-      body: formData,
-    });
+      const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${aiKey}` },
+        body: formData,
+      });
 
-    if (!whisperRes.ok) {
-      const errBody = await whisperRes.text();
-      throw new Error(`Whisper xatosi (${whisperRes.status}): ${errBody}`);
+      if (whisperRes.ok) {
+        const data = await whisperRes.json();
+        const text = data.text ?? "";
+        if (text.trim()) return text.trim();
+      }
+    } catch (e) {
+      console.error("Whisper STT xatosi:", e);
     }
-
-    const data = await whisperRes.json();
-    const text = data.text ?? "";
-    if (!text.trim()) throw new Error("Whisper bo'sh javob qaytardi");
-    return text.trim();
   }
 
-  // ── 3. Google Gemini (fallback) ────────────────────────────────────────────
-  if (!aiKey) throw new Error("Hech qanday STT API key sozlanmagan. GOOGLE_STT_API_KEY yoki GEMINI_API_KEY kerak.");
+  // ── 3. Google Cloud Speech-to-Text (zahira sifatida) ───────────────────────
+  if (googleSttKey) {
+    try {
+      const bytes = new Uint8Array(audioBuffer);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const base64Audio = btoa(binary);
 
-  const { GoogleGenerativeAI } = await import("@google/generative-ai");
-  const genAI = new GoogleGenerativeAI(aiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const sttRes = await fetch(
+        `https://speech.googleapis.com/v1/speech:recognize?key=${googleSttKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            config: {
+              encoding: "OGG_OPUS",
+              sampleRateHertz: 48000,
+              languageCode: "uz-UZ",
+              alternativeLanguageCodes: ["ru-RU"],
+              model: "latest_long",
+              enableAutomaticPunctuation: true,
+              useEnhanced: true,
+            },
+            audio: { content: base64Audio },
+          }),
+        }
+      );
 
-  const bytes2 = new Uint8Array(audioBuffer);
-  let binary2 = "";
-  for (let i = 0; i < bytes2.byteLength; i++) {
-    binary2 += String.fromCharCode(bytes2[i]);
+      if (sttRes.ok) {
+        const sttData = await sttRes.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const transcript = (sttData.results ?? []).map((r: any) => r.alternatives?.[0]?.transcript ?? "").join(" ").trim();
+        if (transcript) return transcript;
+      }
+    } catch (e) {
+      console.error("Google Cloud STT xatosi:", e);
+    }
   }
-  const base64Audio2 = btoa(binary2);
 
-  const result = await model.generateContent([
-    { inlineData: { mimeType: "audio/ogg", data: base64Audio2 } },
-    "Bu ovozli xabar O'zbek tilida. Uni aniq transkripsiya qiling. Transkripsiyadan boshqa hech narsa yozmang. Sheva yoki ruscha so'zlar bo'lsa ham o'zbek harflarida yozing.",
-  ]);
-
-  const geminiText = result.response.text().trim();
-  if (!geminiText) throw new Error("Gemini bo'sh transkripsiya qaytardi");
-  return geminiText;
+  throw new Error("Hech qanday STT provayderidan javob olib bo'lmadi.");
 }
 
 
