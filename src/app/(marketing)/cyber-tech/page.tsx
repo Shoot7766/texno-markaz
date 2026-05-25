@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   BookOpen,
   Award,
+  Shield,
   Terminal,
   Search,
   Filter,
@@ -1860,7 +1861,6 @@ export default function UltimateCyberTechPage() {
   ]);
   const [cipherAnswerInput, setCipherAnswerInput] = useState("");
   const [cipherActiveChallenge, setCipherActiveChallenge] = useState<number>(0);
-  
   // Vulnerability Nmap Port Scanner states
   const [nmapTargetIp, setNmapTargetIp] = useState("");
   const [nmapScanning, setNmapScanning] = useState(false);
@@ -1873,7 +1873,7 @@ export default function UltimateCyberTechPage() {
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>([]);
 
   // ── Kiber O'yinlar Arena (Mini-Games) states & logic ───────────────────────
-  const [activeGame, setActiveGame] = useState<"none" | "typer" | "binary">("none");
+  const [activeGame, setActiveGame] = useState<"none" | "typer" | "binary" | "port">("none");
 
   // Game 1: Cyber Threat Typer
   const [typerWord, setTyperWord] = useState("");
@@ -1881,6 +1881,8 @@ export default function UltimateCyberTechPage() {
   const [typerScore, setTyperScore] = useState(0);
   const [typerTime, setTyperTime] = useState(30);
   const [typerActive, setTyperActive] = useState(false);
+  const [typerDifficulty, setTyperDifficulty] = useState<"oson" | "o'rta" | "qiyin">("o'rta");
+  const [typerSelectedTime, setTyperSelectedTime] = useState<number>(30);
 
   // Game 2: Binary Hacker
   const [binaryNum, setBinaryNum] = useState(0);
@@ -1889,6 +1891,18 @@ export default function UltimateCyberTechPage() {
   const [binaryScore, setBinaryScore] = useState(0);
   const [binaryTime, setBinaryTime] = useState(30);
   const [binaryActive, setBinaryActive] = useState(false);
+  const [binaryDifficulty, setBinaryDifficulty] = useState<"oson" | "o'rta" | "qiyin">("o'rta");
+  const [binarySelectedTime, setBinarySelectedTime] = useState<number>(30);
+
+  // Game 3: Port Shield (Port Qalqoni)
+  const [portActive, setPortActive] = useState(false);
+  const [portTime, setPortTime] = useState(30);
+  const [portScore, setPortScore] = useState(0);
+  const [portAlert, setPortAlert] = useState("");
+  const [portCorrectAnswer, setPortCorrectAnswer] = useState<number>(80);
+  const [portOptions, setPortOptions] = useState<number[]>([]);
+  const [portDifficulty, setPortDifficulty] = useState<"oson" | "o'rta" | "qiyin">("o'rta");
+  const [portSelectedTime, setPortSelectedTime] = useState<number>(30);
 
   // Cyber Threat Typer Game Timer
   useEffect(() => {
@@ -1898,15 +1912,8 @@ export default function UltimateCyberTechPage() {
     } else if (typerTime === 0 && typerActive) {
       setTyperActive(false);
       playBuzzSound();
-      // Award final points
-      const bonus = typerScore * 10;
-      if (bonus > 0) {
-        const finalPts = userPoints + bonus;
-        setUserPoints(finalPts);
-        pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, finalPts);
-      }
     }
-  }, [typerTime, typerActive, userPoints]);
+  }, [typerTime, typerActive]);
 
   // Binary Hacker Game Timer
   useEffect(() => {
@@ -1916,48 +1923,59 @@ export default function UltimateCyberTechPage() {
     } else if (binaryTime === 0 && binaryActive) {
       setBinaryActive(false);
       playBuzzSound();
-      // Award final points
-      const bonus = binaryScore * 15;
-      if (bonus > 0) {
-        const finalPts = userPoints + bonus;
-        setUserPoints(finalPts);
-        pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, finalPts);
-      }
     }
-  }, [binaryTime, binaryActive, userPoints]);
+  }, [binaryTime, binaryActive]);
+
+  // Port Shield Game Timer
+  useEffect(() => {
+    if (portActive && portTime > 0) {
+      const t = setTimeout(() => setPortTime(portTime - 1), 1000);
+      return () => clearTimeout(t);
+    } else if (portTime === 0 && portActive) {
+      setPortActive(false);
+      playBuzzSound();
+    }
+  }, [portTime, portActive]);
 
   // ── Cyber Threat Typer Handlers ───────────────────────────────────────────
-  const TYPER_WORDS = [
-    "DDOS", "TROJAN", "PHISHING", "FIREWALL", "ENCRYPTION", "BRUTEFORCE", 
-    "MALWARE", "DECRYPT", "PROXY", "VPN", "ROOTKIT", "BACKDOOR", "WORM", 
-    "RANSOMWARE", "SPYWARE", "EXPLOIT", "PAYLOAD", "CREDENTIALS", "DATA_BREACH"
-  ];
+  const TYPER_OSON = ["VPN", "XSS", "WORM", "DDOS", "PORT", "IP", "MAC", "HASH", "PING", "SQL", "SSL", "TLS", "KEY", "DATA", "FIRE", "CODE", "WEB"];
+  const TYPER_ORTA = ["TROJAN", "MALWARE", "EXPLOIT", "PAYLOAD", "DECRYPT", "FIREWALL", "SPYWARE", "ROOTKIT", "BACKDOOR", "CAPTCHA", "BRIDGING"];
+  const TYPER_QIYIN = ["SQL_INJECTION", "BRUTEFORCE", "RANSOMWARE", "CREDENTIALS", "DATA_BREACH", "CRYPTOGRAPHY", "CYBER_SHIELD", "KEYLOGGER", "VULNERABILITY", "INTRUSION"];
 
   const startTyperGame = () => {
     playTrophySound();
-    const firstWord = TYPER_WORDS[Math.floor(Math.random() * TYPER_WORDS.length)];
+    const wordList = typerDifficulty === "oson" ? TYPER_OSON : typerDifficulty === "o'rta" ? TYPER_ORTA : TYPER_QIYIN;
+    const firstWord = wordList[Math.floor(Math.random() * wordList.length)];
     setTyperWord(firstWord);
     setTyperInput("");
     setTyperScore(0);
-    setTyperTime(30);
+    setTyperTime(typerSelectedTime);
     setTyperActive(true);
     setActiveGame("typer");
   };
 
   const handleTyperInput = (val: string) => {
     setTyperInput(val);
+    const wordList = typerDifficulty === "oson" ? TYPER_OSON : typerDifficulty === "o'rta" ? TYPER_ORTA : TYPER_QIYIN;
     if (val.trim().toUpperCase() === typerWord) {
       playClickSound();
       setTyperScore(prev => prev + 1);
       setTyperInput("");
-      const nextWord = TYPER_WORDS[Math.floor(Math.random() * TYPER_WORDS.length)];
+      const nextWord = wordList[Math.floor(Math.random() * wordList.length)];
       setTyperWord(nextWord);
+
+      // Award HP immediately based on level
+      const added = typerDifficulty === "oson" ? 10 : typerDifficulty === "o'rta" ? 20 : 40;
+      const newPts = userPoints + added;
+      setUserPoints(newPts);
+      pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, newPts);
     }
   };
 
   // ── Binary Hacker Handlers ────────────────────────────────────────────────
   const generateBinaryQuestion = () => {
-    const dec = Math.floor(Math.random() * 30) + 1; // 1 to 30 decimal
+    const maxDec = binaryDifficulty === "oson" ? 15 : binaryDifficulty === "o'rta" ? 31 : 127;
+    const dec = Math.floor(Math.random() * maxDec) + 1;
     setBinaryNum(dec);
     const correctBin = dec.toString(2).padStart(8, "0");
     setBinaryAnswer(correctBin);
@@ -1966,7 +1984,7 @@ export default function UltimateCyberTechPage() {
     const optionsSet = new Set<string>();
     optionsSet.add(correctBin);
     while (optionsSet.size < 4) {
-      const wrongDec = Math.floor(Math.random() * 30) + 1;
+      const wrongDec = Math.floor(Math.random() * maxDec) + 1;
       if (wrongDec !== dec) {
         optionsSet.add(wrongDec.toString(2).padStart(8, "0"));
       }
@@ -1978,7 +1996,7 @@ export default function UltimateCyberTechPage() {
     playTrophySound();
     generateBinaryQuestion();
     setBinaryScore(0);
-    setBinaryTime(30);
+    setBinaryTime(binarySelectedTime);
     setBinaryActive(true);
     setActiveGame("binary");
   };
@@ -1987,11 +2005,97 @@ export default function UltimateCyberTechPage() {
     if (selected === binaryAnswer) {
       playClickSound();
       setBinaryScore(prev => prev + 1);
+      
+      // Award HP immediately based on level
+      const added = binaryDifficulty === "oson" ? 10 : binaryDifficulty === "o'rta" ? 15 : 25;
+      const newPts = userPoints + added;
+      setUserPoints(newPts);
+      pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, newPts);
       generateBinaryQuestion();
     } else {
       playBuzzSound();
-      // Generate next question
+      // Deduct HP immediately on wrong answer
+      const penalty = binaryDifficulty === "oson" ? 5 : binaryDifficulty === "o'rta" ? 10 : 20;
+      const newPts = Math.max(0, userPoints - penalty);
+      setUserPoints(newPts);
+      pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, newPts);
       generateBinaryQuestion();
+    }
+  };
+
+  // ── Port Shield (Port Qalqoni) Handlers ────────────────────────────────────
+  const PORT_ALERTS = [
+    { port: 21, alert: "FTP parolni buzish (Brute-force) hujumi aniqlandi! Portni yoping!" },
+    { port: 22, alert: "SSH masofadan boshqarish portiga ruxsatsiz kirish kiber-tahdidi!" },
+    { port: 23, alert: "Eski Telnet shifrlanmagan tarmoq trafigini tinglash xavfi!" },
+    { port: 25, alert: "SMTP spam-botlar va zararli xat jo'natish hujumi!" },
+    { port: 53, alert: "DNS Spoofing (soxtalashtirish) orqali domenlarni o'g'irlash harakati!" },
+    { port: 80, alert: "HTTP veb-serverga DDoS kiber hujumi qayd etildi!" },
+    { port: 110, alert: "POP3 elektron pochta parollarini o'g'irlash urinishi!" },
+    { port: 443, alert: "HTTPS SSL/TLS man-in-the-middle xavfli hujumi!" },
+    { port: 3306, alert: "MySQL ma'lumotlar bazasiga SQL Injection orqali kirish urinishi!" },
+    { port: 3389, alert: "RDP masofaviy ish stoli portini buzib kirish kiber-tahdidi!" },
+    { port: 8080, alert: "Veb-ilovalar test portiga (8080) ruxsatsiz ulanish!" }
+  ];
+
+  const generatePortQuestion = () => {
+    let activeAlerts = PORT_ALERTS;
+    let optionCount = 4;
+    if (portDifficulty === "oson") {
+      activeAlerts = PORT_ALERTS.filter(a => [21, 22, 80, 443].includes(a.port));
+      optionCount = 4;
+    } else if (portDifficulty === "o'rta") {
+      activeAlerts = PORT_ALERTS.filter(a => [21, 22, 23, 25, 53, 80, 443].includes(a.port));
+      optionCount = 6;
+    } else {
+      activeAlerts = PORT_ALERTS;
+      optionCount = 8;
+    }
+
+    const randomAlert = activeAlerts[Math.floor(Math.random() * activeAlerts.length)];
+    setPortAlert(randomAlert.alert);
+    setPortCorrectAnswer(randomAlert.port);
+
+    const optionsSet = new Set<number>();
+    optionsSet.add(randomAlert.port);
+
+    const allAvailablePorts = activeAlerts.map(a => a.port);
+    while (optionsSet.size < Math.min(optionCount, allAvailablePorts.length)) {
+      const randomPort = allAvailablePorts[Math.floor(Math.random() * allAvailablePorts.length)];
+      optionsSet.add(randomPort);
+    }
+
+    setPortOptions(Array.from(optionsSet).sort(() => Math.random() - 0.5));
+  };
+
+  const startPortGame = () => {
+    playTrophySound();
+    generatePortQuestion();
+    setPortScore(0);
+    setPortTime(portSelectedTime);
+    setPortActive(true);
+    setActiveGame("port");
+  };
+
+  const handlePortAnswer = (selected: number) => {
+    if (selected === portCorrectAnswer) {
+      playClickSound();
+      setPortScore(prev => prev + 1);
+
+      // Award HP immediately based on level
+      const added = portDifficulty === "oson" ? 15 : portDifficulty === "o'rta" ? 25 : 40;
+      const newPts = userPoints + added;
+      setUserPoints(newPts);
+      pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, newPts);
+      generatePortQuestion();
+    } else {
+      playBuzzSound();
+      // Deduct HP immediately on wrong answer
+      const penalty = portDifficulty === "oson" ? 10 : portDifficulty === "o'rta" ? 15 : 25;
+      const newPts = Math.max(0, userPoints - penalty);
+      setUserPoints(newPts);
+      pushUpdateToCloud(unlockedLessons, completedQuizzes, bookBookmarks, unlockedBadges, studentName, newPts);
+      generatePortQuestion();
     }
   };
 
@@ -5318,17 +5422,59 @@ export default function UltimateCyberTechPage() {
                 </div>
 
                 {activeGame === "none" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Game 1: Cyber Threat Typer */}
-                    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1630] to-[#0b0f1a] p-6 space-y-4 hover:border-purple-500/30 transition shadow-2xl relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-black font-sans pointer-events-none select-none">⌨️</div>
+                    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1630] to-[#0b0f1a] p-6 flex flex-col justify-between space-y-4 hover:border-purple-500/30 transition shadow-2xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-5 text-8xl font-black font-sans pointer-events-none select-none">⌨️</div>
                       <div className="space-y-2">
                         <span className="text-[10px] uppercase font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md tracking-wider">Tezlik va Diqqat</span>
                         <h4 className="text-lg font-black text-white">Cyber Threat Typer ⌨️</h4>
                         <p className="text-xs text-slate-400 leading-relaxed">
-                          Ekrandagi xavfli viruslar va tahdidlar nomini vaqt tugaguncha tez va xatosiz terib, kiber hujumni bartaraf eting. Har bir to&apos;g&apos;ri so&apos;z uchun **+10 XP**!
+                          Ekrandagi virus va tahdidlar nomini tezda va xatosiz terib, kiber hujumni bartaraf eting. Qiyinchilik darajasiga qarab uzun so&apos;zlar chiqadi va ko&apos;proq ball beradi!
                         </p>
                       </div>
+
+                      {/* Settings */}
+                      <div className="space-y-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-slate-400 font-bold">Daraja:</span>
+                          <div className="flex gap-1">
+                            {(["oson", "o'rta", "qiyin"] as const).map((d) => (
+                              <button
+                                key={d}
+                                onClick={() => { playClickSound(); setTyperDifficulty(d); }}
+                                className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider transition cursor-pointer ${
+                                  typerDifficulty === d
+                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                    : "bg-white/5 text-slate-400 hover:bg-white/10"
+                                }`}
+                              >
+                                {d}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-slate-400 font-bold">Vaqt:</span>
+                          <div className="flex gap-1">
+                            {([20, 30, 60] as const).map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => { playClickSound(); setTyperSelectedTime(t); }}
+                                className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                                  typerSelectedTime === t
+                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                    : "bg-white/5 text-slate-400 hover:bg-white/10"
+                                }`}
+                              >
+                                {t}s
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="pt-2">
                         <button
                           onClick={startTyperGame}
@@ -5340,18 +5486,122 @@ export default function UltimateCyberTechPage() {
                     </div>
 
                     {/* Game 2: Binary Hacker */}
-                    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1630] to-[#0b0f1a] p-6 space-y-4 hover:border-emerald-500/30 transition shadow-2xl relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-black font-sans pointer-events-none select-none">01</div>
+                    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1630] to-[#0b0f1a] p-6 flex flex-col justify-between space-y-4 hover:border-emerald-500/30 transition shadow-2xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-5 text-8xl font-black font-sans pointer-events-none select-none">01</div>
                       <div className="space-y-2">
                         <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md tracking-wider">Matematika va Kod</span>
                         <h4 className="text-lg font-black text-white">Binary Hacker 🤖</h4>
                         <p className="text-xs text-slate-400 leading-relaxed">
-                          O&apos;nlik sonlarni tezda 8-bitli ikkilik (binary) tizimga o&apos;tkazing. Ikkilik sanoq tizimi bilan ishlash tezligingizni sinab ko&apos;ring. Har bir to&apos;g&apos;ri javob uchun **+15 XP**!
+                          O&apos;nlik sonlarni tezda 8-bitli ikkilik tizimga o&apos;tkazing. Har bir to&apos;g&apos;ri javob ball (HP) beradi, xato javob esa ball olib tashlaydi!
                         </p>
                       </div>
+
+                      {/* Settings */}
+                      <div className="space-y-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-slate-400 font-bold">Daraja:</span>
+                          <div className="flex gap-1">
+                            {(["oson", "o'rta", "qiyin"] as const).map((d) => (
+                              <button
+                                key={d}
+                                onClick={() => { playClickSound(); setBinaryDifficulty(d); }}
+                                className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider transition cursor-pointer ${
+                                  binaryDifficulty === d
+                                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                                    : "bg-white/5 text-slate-400 hover:bg-white/10"
+                                }`}
+                              >
+                                {d}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-slate-400 font-bold">Vaqt:</span>
+                          <div className="flex gap-1">
+                            {([20, 30, 60] as const).map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => { playClickSound(); setBinarySelectedTime(t); }}
+                                className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                                  binarySelectedTime === t
+                                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                                    : "bg-white/5 text-slate-400 hover:bg-white/10"
+                                }`}
+                              >
+                                {t}s
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="pt-2">
                         <button
                           onClick={startBinaryGame}
+                          className="w-full py-3 bg-[#00D1FF] text-black text-xs font-black rounded-xl hover:brightness-110 shadow-lg shadow-[#00D1FF]/10 transition duration-300 cursor-pointer"
+                        >
+                          O&apos;yinni Boshlash
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Game 3: Port Shield */}
+                    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e1630] to-[#0b0f1a] p-6 flex flex-col justify-between space-y-4 hover:border-amber-500/30 transition shadow-2xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-5 text-8xl font-black font-sans pointer-events-none select-none">🛡️</div>
+                      <div className="space-y-2">
+                        <span className="text-[10px] uppercase font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md tracking-wider">Tarmoq Xavfsizligi</span>
+                        <h4 className="text-lg font-black text-white">Port Shield 🛡️</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          Hujum ostidagi portni (masalan, SSH uchun 22, HTTP uchun 80 va hkz.) vaqtida yoping va tarmoqni himoyalang. To&apos;g&apos;ri javob ball beradi, xato esa olib tashlaydi!
+                        </p>
+                      </div>
+
+                      {/* Settings */}
+                      <div className="space-y-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-slate-400 font-bold">Daraja:</span>
+                          <div className="flex gap-1">
+                            {(["oson", "o'rta", "qiyin"] as const).map((d) => (
+                              <button
+                                key={d}
+                                onClick={() => { playClickSound(); setPortDifficulty(d); }}
+                                className={`px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider transition cursor-pointer ${
+                                  portDifficulty === d
+                                    ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                                    : "bg-white/5 text-slate-400 hover:bg-white/10"
+                                }`}
+                              >
+                                {d}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-slate-400 font-bold">Vaqt:</span>
+                          <div className="flex gap-1">
+                            {([20, 30, 60] as const).map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => { playClickSound(); setPortSelectedTime(t); }}
+                                className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                                  portSelectedTime === t
+                                    ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                                    : "bg-white/5 text-slate-400 hover:bg-white/10"
+                                }`}
+                              >
+                                {t}s
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <button
+                          onClick={startPortGame}
                           className="w-full py-3 bg-[#00D1FF] text-black text-xs font-black rounded-xl hover:brightness-110 shadow-lg shadow-[#00D1FF]/10 transition duration-300 cursor-pointer"
                         >
                           O&apos;yinni Boshlash
@@ -5406,7 +5656,7 @@ export default function UltimateCyberTechPage() {
                         <div className="space-y-2">
                           <h4 className="text-xl font-black text-white">Vaqt Tugadi!</h4>
                           <p className="text-sm text-slate-400">
-                            Siz jami **{typerScore} ta** tahdidni bartaraf etdingiz va **+{typerScore * 10} XP** to&apos;pladingiz!
+                            Siz jami **{typerScore} ta** tahdidni bartaraf etdingiz va **+{typerScore * (typerDifficulty === "oson" ? 10 : typerDifficulty === "o'rta" ? 20 : 40)} XP** to&apos;pladingiz!
                           </p>
                         </div>
                         <div>
@@ -5420,7 +5670,7 @@ export default function UltimateCyberTechPage() {
                       </div>
                     )}
                   </div>
-                ) : (
+                ) : activeGame === "binary" ? (
                   <div className="rounded-3xl border border-[#00d1ff]/20 bg-[#0c0f1e]/90 p-6 sm:p-10 text-center space-y-6 relative overflow-hidden max-w-xl mx-auto shadow-2xl animate-success-pop">
                     <div className="flex justify-between items-center border-b border-white/5 pb-4">
                       <div className="text-left font-mono">
@@ -5468,13 +5718,76 @@ export default function UltimateCyberTechPage() {
                         <div className="space-y-2">
                           <h4 className="text-xl font-black text-white">Vaqt Tugadi!</h4>
                           <p className="text-sm text-slate-400">
-                            Siz jami **{binaryScore} ta** sonni to&apos;g&apos;ri o&apos;tkazdingiz va **+{binaryScore * 15} XP** to&apos;pladingiz!
+                            Siz jami **{binaryScore} ta** sonni to&apos;g&apos;ri o&apos;tkazdingiz va **+{binaryScore * (binaryDifficulty === "oson" ? 10 : binaryDifficulty === "o'rta" ? 15 : 25)} XP** to&apos;pladingiz!
                           </p>
                         </div>
                         <div>
                           <button
                             onClick={startBinaryGame}
                             className="py-3 px-8 bg-emerald-600 text-white text-xs font-black rounded-xl hover:bg-emerald-700 transition cursor-pointer"
+                          >
+                            Qayta O&apos;ynash
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-3xl border border-[#00d1ff]/20 bg-[#0c0f1e]/90 p-6 sm:p-10 text-center space-y-6 relative overflow-hidden max-w-xl mx-auto shadow-2xl animate-success-pop">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                      <div className="text-left font-mono">
+                        <p className="text-[10px] text-slate-500">OCHKO</p>
+                        <p className="text-lg font-black text-white">{portScore} ta</p>
+                      </div>
+                      <div className="text-center font-mono">
+                        <p className="text-[10px] text-slate-500">QOLGAN VAQT</p>
+                        <p className={`text-xl font-black animate-pulse ${portTime <= 5 ? "text-rose-500" : "text-emerald-400"}`}>{portTime}s</p>
+                      </div>
+                      <button
+                        onClick={() => { playBuzzSound(); setActiveGame("none"); setPortActive(false); }}
+                        className="text-xs text-rose-400 hover:underline font-bold cursor-pointer"
+                      >
+                        Chiqish
+                      </button>
+                    </div>
+
+                    {portActive ? (
+                      <div className="py-6 space-y-6">
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase font-bold text-amber-400 tracking-widest animate-pulse">🚨 KIBER TAHDID OGOHLANTIRISHI!</p>
+                          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 max-w-md mx-auto my-3 animate-pulse">
+                            <p className="text-sm font-bold text-rose-400 font-mono leading-relaxed">{portAlert}</p>
+                          </div>
+                          <p className="text-[10px] text-slate-400 tracking-wider">Hujumni to&apos;sish uchun to&apos;g&apos;ri portni tanlang:</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-md mx-auto">
+                          {portOptions.map((opt) => (
+                            <button
+                              key={opt}
+                              onClick={() => handlePortAnswer(opt)}
+                              className="py-4 px-3 bg-white/5 border border-white/10 hover:border-amber-400 rounded-2xl text-sm font-mono font-bold text-slate-200 hover:text-white hover:bg-amber-500/10 transition duration-200 cursor-pointer shadow-lg"
+                            >
+                              Port {opt}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-8 space-y-6">
+                        <div className="h-16 w-16 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30 text-emerald-400 animate-success-pop">
+                          <Shield className="h-7 w-7" />
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-xl font-black text-white">Vaqt Tugadi!</h4>
+                          <p className="text-sm text-slate-400">
+                            Siz jami **{portScore} ta** kiber-tahdidni qaytardingiz va **+{portScore * (portDifficulty === "oson" ? 15 : portDifficulty === "o'rta" ? 25 : 40)} XP** to&apos;pladingiz!
+                          </p>
+                        </div>
+                        <div>
+                          <button
+                            onClick={startPortGame}
+                            className="py-3 px-8 bg-amber-600 text-white text-xs font-black rounded-xl hover:bg-amber-700 transition cursor-pointer"
                           >
                             Qayta O&apos;ynash
                           </button>
