@@ -102,8 +102,9 @@ export async function POST(request: NextRequest) {
 
         // c) OpenAI Whisper API orqali matnga aylantirish (Transkripsiya)
         const formData = new FormData();
-        const blob = new Blob([voiceBuffer], { type: "audio/ogg" });
-        formData.append("file", blob, "voice.ogg");
+        // Modern File object guarantees proper multipart filename & content-type boundary in Vercel/Node environment
+        const fileObj = new File([voiceBuffer], "voice.ogg", { type: "audio/ogg" });
+        formData.append("file", fileObj);
         formData.append("model", "whisper-1");
         formData.append("language", "uz");
 
@@ -121,7 +122,8 @@ export async function POST(request: NextRequest) {
         if (promptText.trim()) {
           await sendTelegramMessage(senderChatId, `🎤 *Eshityapman... Ovozli buyrug'ingiz:* \n_"${promptText}"_`);
         } else {
-          await sendTelegramMessage(senderChatId, "⚠️ Ovozli xabarni matnga aylantira olmadim. Iltimos, balandroq va aniqroq gapiring.");
+          const errDetail = transcriptionData.error?.message || JSON.stringify(transcriptionData);
+          await sendTelegramMessage(senderChatId, `⚠️ *Ovozli transkripsiya xatosi:* \n${errDetail}`);
           return NextResponse.json({ ok: true });
         }
       } else {
