@@ -41,10 +41,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-      systemInstruction: `Siz "Cyber Tech" ta'lim platformasining "Kiber-Mentor" nomli sun'iy intellekt yo'riqchisisiz.
+    const isOpenAI = apiKey.trim().startsWith("sk-");
+
+    const systemInstruction = `Siz "Cyber Tech" ta'lim platformasining "Kiber-Mentor" nomli sun'iy intellekt yo'riqchisisiz.
 Sizning vazifangiz foydalanuvchining kiberxavfsizlik, dasturlash va boshqa IT sohalariga oid savollariga o'zbek tilida professional javob berishdir.
 
 MUHIM BILIM MANBAI (Kutubxonamizdagi kitoblar):
@@ -54,18 +53,58 @@ ${booksContext}
 ---
 
 Muloqot tillari: O'zbekcha (asosiy), Ruscha, Inglizcha.
-Javoblaringiz qisqa, aniq, do'stona va amaliy misollar bilan boyitilgan bo'lsin.`
-    });
+Javoblaringiz qisqa, aniq, do'stona va amaliy misollar bilan boyitilgan bo'lsin.`;
 
-    const chat = model.startChat({
-      history: history.map((h: any) => ({
-        role: h.sender === "user" ? "user" : "model",
-        parts: [{ text: h.text }]
-      }))
-    });
+    let replyText = "";
 
-    const result = await chat.sendMessage(message);
-    const replyText = result.response.text();
+    if (isOpenAI) {
+      const messages = [
+        { role: "system", content: systemInstruction },
+        ...history.map((h: any) => ({
+          role: h.sender === "user" ? "user" : "assistant",
+          content: h.text
+        })),
+        { role: "user", content: message }
+      ];
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey.trim()}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages,
+          temperature: 0.7,
+          max_tokens: 1500,
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `OpenAI Error: ${response.statusText}`);
+      }
+
+      const resData = await response.json();
+      replyText = resData.choices[0]?.message?.content || "";
+    } else {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.0-flash",
+        systemInstruction
+      });
+
+      const chat = model.startChat({
+        history: history.map((h: any) => ({
+          role: h.sender === "user" ? "user" : "model",
+          parts: [{ text: h.text }]
+        }))
+      });
+
+      const result = await chat.sendMessage(message);
+      replyText = result.response.text();
+    }
 
     return NextResponse.json({ reply: replyText });
 

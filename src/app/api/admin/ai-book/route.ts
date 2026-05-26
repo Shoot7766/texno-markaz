@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY sozlanmagan" }, { status: 500 });
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const isOpenAI = apiKey.trim().startsWith("sk-");
+    let raw = "";
 
     const prompt = `
 Siz professional ta'limiy AI mutaxassisi va tarjimonisiz.
@@ -55,8 +55,44 @@ ${text.substring(0, 15000)}
 ---
 `;
 
-    const result = await model.generateContent(prompt);
-    const raw = result.response.text();
+    if (isOpenAI) {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey.trim()}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: "Siz ta'limiy AI mutaxassisiz. Kitob matnini o'rganib, o'zbek tiliga tarjima qiling va ko'rsatilgan JSON shaklda to'liq qaytaring."
+            },
+            {
+              role: "user",
+              content: prompt,
+            }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.7,
+          max_tokens: 4096,
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `OpenAI API Error: ${response.statusText}`);
+      }
+
+      const resData = await response.json();
+      raw = resData.choices[0]?.message?.content || "";
+    } else {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const result = await model.generateContent(prompt);
+      raw = result.response.text();
+    }
     
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
