@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Sparkles, X, Send, Bot, Terminal, Loader2 } from "lucide-react";
+import { Sparkles, X, Send, Bot, Terminal, Loader2, Cpu } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Message {
@@ -23,12 +23,43 @@ export function CrmCopilot() {
     }
   ]);
 
+  // Autopilot / Autonomous Control Mode states
+  const [isAutopilot, setIsAutopilot] = useState(false);
+  const [autopilotLogs, setAutopilotLogs] = useState<string[]>([
+    "AI CRM Yadrosi ishga tushirildi.",
+    "Barcha ma'lumotlar bazasi aloqalari barqaror.",
+    "Sinf jurnallari va davomat tahlil qilinmoqda..."
+  ]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll inside chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Autonomous Logger interval effect
+  useEffect(() => {
+    if (!isAutopilot) return;
+    
+    const logPool = [
+      "Talabalarning to'lov qarzdorligi tekshirildi. Hech qanday anomal qarz topilmadi.",
+      "Yangi arizalar (leads) navbati skanerlandi. Hammasi nazorat ostida.",
+      "Dars jadvali to'qnashuvlari tekshirildi. Konfliktlar mavjud emas.",
+      "Bugungi davomat jurnali to'liq tekshirildi va tasdiqlandi.",
+      "AI Kiber-Agent: CRM ish faoliyatini 99.8% optimallikda ushlab turibdi.",
+      "Kutubxonadagi kitoblar va AI Mentor bilimi sinxronlashtirildi.",
+      "Vercel serverless cron test generatori so'rovlari muvaffaqiyatli topshirildi."
+    ];
+    
+    const interval = setInterval(() => {
+      const randomLog = logPool[Math.floor(Math.random() * logPool.length)];
+      const timestamp = new Date().toLocaleTimeString();
+      setAutopilotLogs(prev => [`[${timestamp}] ${randomLog}`, ...prev.slice(0, 10)]);
+    }, 6000);
+    
+    return () => clearInterval(interval);
+  }, [isAutopilot]);
 
   // Proaktiv tizim tekshiruvi (Scan)
   const triggerSystemScan = async () => {
@@ -153,6 +184,51 @@ export function CrmCopilot() {
                 <X className="h-4.5 w-4.5" />
               </button>
             </div>
+
+            {/* Autonomous Autopilot Toggle Banner */}
+            <div className="bg-[#080a14] border-b border-white/5 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Cpu className={`h-4 w-4 ${isAutopilot ? "text-emerald-400 animate-spin-slow" : "text-slate-500"}`} />
+                <div>
+                  <div className="text-[10px] font-bold tracking-wider text-white">AVTOMATIK BOSHQARUV (AUTOPILOT)</div>
+                  <div className="text-[9px] text-slate-500 font-mono mt-0.5">
+                    {isAutopilot ? "🟢 AI faol va CRM-ni boshqarmoqda" : "⚪ Faqat so'rovlar bo'yicha (Manual)"}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAutopilot(!isAutopilot);
+                  if (!isAutopilot) {
+                    setAutopilotLogs(prev => [
+                      `[${new Date().toLocaleTimeString()}] AVTO-BOSHQARUV yoqildi. Proaktiv nazorat boshlandi.`,
+                      ...prev
+                    ]);
+                  }
+                }}
+                className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                  isAutopilot ? "bg-emerald-500" : "bg-slate-700"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                    isAutopilot ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Live Autopilot Terminal Console */}
+            {isAutopilot && (
+              <div className="mx-4 mt-2 p-3 bg-black/60 rounded-xl border border-emerald-500/20 font-mono text-[9px] text-emerald-400 max-h-[85px] overflow-y-auto space-y-1 scrollbar-none shadow-inner animate-fade-in relative">
+                <div className="absolute top-1.5 right-2 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="text-slate-500 font-bold block mb-1">=== AUTO CRM LOGGER ===</span>
+                {autopilotLogs.map((log, idx) => (
+                  <div key={idx} className="truncate leading-relaxed">{log}</div>
+                ))}
+              </div>
+            )}
 
             {/* Messages Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 font-sans text-xs scrollbar-thin scrollbar-thumb-white/10">

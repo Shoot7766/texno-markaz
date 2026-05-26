@@ -42,6 +42,14 @@ import {
   Database,
   Gamepad2,
   X,
+  Cpu,
+  Globe,
+  Server,
+  Code,
+  ShieldAlert,
+  Wifi,
+  FileCode,
+  Check,
 } from "lucide-react";
 import { createClient, createCleanPublicClient } from "@/lib/supabase/client";
 
@@ -1422,9 +1430,9 @@ export interface ThmModule {
 
 export const THM_MODULES: ThmModule[] = [
   {
-    id: "thm-mod-basics",
+    id: "thm-mod-1",
     title: "1. Introduction to Computing (Kompyuter Asoslari)",
-    desc: "Kompyuter apparat qismlari, operatsion tizim, Word va Excel dasturlarining amaliy asoslari.",
+    desc: "Kompyuter apparat qismlari, operatsion tizim, ish stoli va amaliy operatsiyalar.",
     rooms: [
       {
         id: "thm-room-1",
@@ -1441,250 +1449,201 @@ Uni tezkor ochish uchun klaviaturadagi **Ctrl + Shift + Esc** kombinatsiyasidan 
 2. Flagni kiriting: \`THM{win_task_manager}\``,
         flag: "THM{win_task_manager}",
         hint: "Klaviaturadagi Ctrl, Shift va Esc tugmalarini birgalikda bosish kombinatsiyasi."
-      },
+      }
+    ]
+  },
+  {
+    id: "thm-mod-2",
+    title: "2. How the Internet Works (Internet Qanday Ishlaydi)",
+    desc: "Butunjahon tarmog'i (WWW), IP manzillar, DNS protokollari va veb-brauzerlar ishlash prinsipi.",
+    rooms: [
       {
         id: "thm-room-2",
-        title: "Room 2: MS Word Formatting Hacks",
+        title: "Room 2: DNS & IP Addresses",
         difficulty: "Boshlang'ich",
         xp: 50,
-        tutorial: `### MS Word Formatting Hacks
-Microsoft Word dasturida matnlarni to'g'ri formatlash uchun **Uslublar (Styles)** panelidan foydalanish zarur.
-Bu hujjat tuzilishini to'g'ri saqlab, avtomatik ravishda Mundarija (Table of Contents) yaratishga yordam beradi.
+        tutorial: `### DNS & IP Addresses
+Internetdagi har bir server o'zining jismoniy raqamli manziliga ega bo'lib, u **IP manzil** (masalan: 192.168.1.1) deb ataladi. 
+Foydalanuvchilarga qulay bo'lishi uchun ushbu IP manzillarni matnli domen nomlariga (masalan: google.com) aylantirib beruvchi tizim **DNS (Domain Name System)** tarmog'idir.
 
 **Sizning vazifangiz:**
-1. Word-da hujjatga chiroyli tartib beruvchi panel nomini toping.
-2. Flagni kiriting: \`THM{word_styles_master}\``,
-        flag: "THM{word_styles_master}",
-        hint: "Hujjatga professional ko'rinish va sarlavhalar beruvchi Styles paneli."
-      },
+1. Domen nomlarini IP manzillarga aylantirib beruvchi tarmoq xizmatini aniqlang.
+2. Flagni kiriting: \`THM{dns_ip_routing}\``,
+        flag: "THM{dns_ip_routing}",
+        hint: "Domain Name System tizimi."
+      }
+    ]
+  },
+  {
+    id: "thm-mod-3",
+    title: "3. Linux & Terminal Fundamentals (Linux Asoslari)",
+    desc: "Linux fayl tizimi, kataloglar bo'ylab harakatlanish va terminal buyruqlari.",
+    rooms: [
       {
         id: "thm-room-3",
-        title: "Room 3: MS Excel & Formula Basics",
+        title: "Room 3: File Navigation & grep",
         difficulty: "Boshlang'ich",
         xp: 50,
-        tutorial: `### MS Excel & Formula Basics
-Excel formulalari har doim '=' belgisi bilan boshlanadi.
-Katakchalarga nisbiy va mutloq murojaat qilishda **$** (dollar) belgisidan foydalaniladi (masalan, $A$1).
-Bu formula boshqa kataklarga nusxalanganida manzil o'zgarmay, qotib turishini ta'minlaydi.
+        tutorial: `### Linux Terminal Navigation
+Linux operatsion tizimida terminal orqali jildlar (kataloglar) bo'ylab harakatlanish va joriy joylashuvni aniqlash uchun **pwd** (print working directory) buyrug'i ishlatiladi.
+Fayl ichidagi matnlarni qidirish va saralash uchun esa **grep** filtri qo'llaniladi.
 
 **Sizning vazifangiz:**
-1. Excelda absolute cell referencing uchun qaysi maxsus belgidan foydalaniladi?
-2. Flagni kiriting: \`THM{excel_absolute_ref_value}\``,
-        flag: "THM{excel_absolute_ref_value}",
-        hint: "Klaviaturadagi Shift + 4 yordamida yoziladigan Dollar ($) belgisi."
-      },
+1. Linux terminalida siz turgan joriy katalog yo'lini ekranga chiqaruvchi buyruq nomini toping.
+2. Flagni kiriting: \`THM{linux_terminal_grep}\``,
+        flag: "THM{linux_terminal_grep}",
+        hint: "pwd (print working directory) buyrug'i."
+      }
+    ]
+  },
+  {
+    id: "thm-mod-4",
+    title: "4. Computer Networking Basics (Tarmoq Asoslari)",
+    desc: "OSI 7-qatlamli modeli, tarmoq ulanishlari va TCP/UDP portlar ishlashi.",
+    rooms: [
       {
         id: "thm-room-4",
-        title: "Room 4: Flag Hunt in Windows Registry",
-        difficulty: "O'rta",
-        xp: 50,
-        tutorial: `### Windows Registry Flag Hunt
-Windows Registry - bu operatsion tizim sozlamalarini saqlaydigan yirik ma'lumotlar omboridir.
-U yerda tizim apparatlari sozlamalari **HKEY_LOCAL_MACHINE** (HKLM) bo'limida saqlanadi.
-
-**Sizning vazifangiz:**
-1. Windows-da tizim sozlamalari va drayverlar uchun asosiy registry hive-sini toping.
-2. Flagni kiriting: \`THM{registry_hive_key}\``,
-        flag: "THM{registry_hive_key}",
-        hint: "Windows Registry ichidagi eng muhim HKEY_LOCAL_MACHINE yoki qisqa qilib HKLM kaliti."
-      }
-    ]
-  },
-  {
-    id: "thm-mod-linux",
-    title: "2. Linux & Terminal Fundamentals",
-    desc: "Linux fayl tizimi, kirish ruxsatlari, matn manipulyatsiyasi va Bash buyruqlari.",
-    rooms: [
-      {
-        id: "thm-room-5",
-        title: "Room 5: Linux Filesystem & Navigation",
-        difficulty: "Boshlang'ich",
-        xp: 50,
-        tutorial: `### Linux Filesystem & Navigation
-Linux operatsion tizimida Windows-dan farqli o'laroq, disklarga bo'linish (C:, D:) yo'q.
-Barcha fayllar va jildlar eng yuqori darajadagi **'/' (root)** katalogi ichida daraxtsimon tuzilishda joylashadi.
-
-**Sizning vazifangiz:**
-1. Linux fayl tizimining eng yuqori root katalogi qaysi belgi bilan belgilanadi?
-2. Flagni kiriting: \`THM{linux_root_directory}\``,
-        flag: "THM{linux_root_directory}",
-        hint: "Faqatgina bitta slash (/) belgisi."
-      },
-      {
-        id: "thm-room-6",
-        title: "Room 6: Permissions & Ownership",
-        difficulty: "O'rta",
-        xp: 50,
-        tutorial: `### Linux Permissions & Ownership
-Linuxda fayl huquqlari uch toifaga bo'linadi: o'qish (r), yozish (w), va bajarish (x).
-Faylni dastur yoki skript sifatida ishga tushirish (bajarish) ruxsatini qo'shish uchun **chmod +x [fayl]** buyrug'idan foydalaniladi.
-
-**Sizning vazifangiz:**
-1. Linux terminalida faylga execute (ishga tushirish) ruxsatini qo'shish uchun qaysi kalit ishlatiladi?
-2. Flagni kiriting: \`THM{chmod_execute_permission}\``,
-        flag: "THM{chmod_execute_permission}",
-        hint: "Chmod buyrug'iga +x qo'shimchasini yozish orqali xavfsiz ishga tushirish."
-      },
-      {
-        id: "thm-room-7",
-        title: "Room 7: Text Manipulation Terminal",
-        difficulty: "O'rta",
-        xp: 50,
-        tutorial: `### Text Manipulation Terminal
-Linux terminalida katta hajmdagi log fayllar ichidan kerakli satrlarni yoki so'zlarni filtrlash uchun **grep** buyrug'i ishlatiladi.
-Masalan: \`cat auth.log | grep \"failed\"\` - muvaffaqiyatsiz ulanishlarni filtrlash.
-
-**Sizning vazifangiz:**
-1. Linux terminalida qatorlarni filtrlash va qidirish uchun ishlatiladigan buyruq nomini toping.
-2. Flagni kiriting: \`THM{grep_search_command}\``,
-        flag: "THM{grep_search_command}",
-        hint: "Ripgrep yoki oddiy grep buyrug'i."
-      },
-      {
-        id: "thm-room-8",
-        title: "Room 8: Shell Scripting Flag Hunt",
-        difficulty: "Qiyin",
-        xp: 50,
-        tutorial: `### Shell Scripting Flag Hunt
-Bash skriptlarini terminalda yozayotganda, skriptning birinchi qatoriga qaysi shell distributividan foydalanishni ko'rsatuvchi shebang sarlavhasi yoziladi.
-Masalan, standart Bash shell uchun: **#!/bin/bash** deb boshlanishi kerak.
-
-**Sizning vazifangiz:**
-1. Bash skriptlarining eng birinchi qatorida ishlatiladigan shebang yozuvini aniqlang.
-2. Flagni kiriting: \`THM{bash_shebang_header}\``,
-        flag: "THM{bash_shebang_header}",
-        hint: "Darvoqe, #!/bin/bash ko'rinishidagi standart shebang."
-      }
-    ]
-  },
-  {
-    id: "thm-mod-networks",
-    title: "3. Network Exploitation Basics",
-    desc: "Tarmoq bayonnomalari, OSI modeli, Nmap port skanerlash va Wireshark tahlili.",
-    rooms: [
-      {
-        id: "thm-room-9",
-        title: "Room 9: OSI Model & TCP Handshake",
+        title: "Room 4: OSI Model & TCP Handshake",
         difficulty: "Boshlang'ich",
         xp: 50,
         tutorial: `### OSI Model & TCP Handshake
-OSI (Open Systems Interconnection) modeli tarmoqdagi muloqotni tartibga soluvchi 7 ta qatlamdan iborat.
-Tarmoqdagi jismoniy simlar, kabellar va ulagichlar **1-qatlam (Fizik qatlam / Physical Layer)** hisoblanadi.
+OSI (Open Systems Interconnection) modeli tarmoqdagi muloqotni 7 ta mantiqiy qavatga bo'lib o'rganadi.
+Tarmoqdagi jismoniy simlar, optik tolali kabellar va ulagichlar eng pastki **1-qatlam (Fizik qatlam / Physical Layer)** hisoblanadi.
 
 **Sizning vazifangiz:**
-1. Tarmoq kabellari va fizik qurilmalar OSI modelining nechanchi qatlamiga to'g'ri kelishini toping.
+1. Tarmoq kabellari va fizik ulanishlar OSI modelining nechanchi qatlamiga kirishini toping.
 2. Flagni kiriting: \`THM{osi_physical_layer}\``,
         flag: "THM{osi_physical_layer}",
-        hint: "Layer 1 yoki Fizik qatlam deb nomlanadi."
-      },
+        hint: "Layer 1 yoki Jismoniy/Physical qatlam."
+      }
+    ]
+  },
+  {
+    id: "thm-mod-5",
+    title: "5. Algorithms & Programming in Python (Algoritmlar va Python)",
+    desc: "Algoritmik fikrlash, o'zgaruvchilar, shartlar, takrorlanishlar (tsikllar) va Python tili.",
+    rooms: [
       {
-        id: "thm-room-10",
-        title: "Room 10: Port Scanning & Nmap",
+        id: "thm-room-5",
+        title: "Room 5: Python Variables & Loops",
+        difficulty: "O'rta",
+        xp: 50,
+        tutorial: `### Python Variables & Loops
+Python dasturlash tilida ma'lumotlar bilan ishlash va ularni ekranga chiqarish juda sodda.
+Masalan, bitta o'zgaruvchi yaratib unga qiymat berish uchun \`x = 10\` shaklida yoziladi. Kodlarni takrorlash uchun esa \`for\` yoki \`while\` tsikllari ishlatiladi.
+
+**Sizning vazifangiz:**
+1. Kodlarni qayta-qayta takrorlash (iteratsiya) uchun ishlatiladigan dasturlash operatori guruhini toping.
+2. Flagni kiriting: \`THM{python_loop_variables}\``,
+        flag: "THM{python_loop_variables}",
+        hint: "Tsikllar yoki inglizcha Loop tushunchasi."
+      }
+    ]
+  },
+  {
+    id: "thm-mod-6",
+    title: "6. Web Technologies & Databases (Veb va Ma'lumotlar Bazasi)",
+    desc: "HTML/CSS arxitekturasi, HTTP protokoli so'rovlari va SQL ma'lumotlar bazasi.",
+    rooms: [
+      {
+        id: "thm-room-6",
+        title: "Room 6: HTTP Protocol & SQL",
+        difficulty: "O'rta",
+        xp: 50,
+        tutorial: `### HTTP Protocol & SQL Basics
+Veb-saytlarga foydalanuvchilar tomonidan maxfiy ma'lumotlar (login, parol) jo'natilganda HTTP bayonnomasining **POST** metodidan foydalaniladi.
+Bu ma'lumotlar xavfsiz va maxfiy ravishda so'rov tanasida (request body) uzatiladi.
+
+**Sizning vazifangiz:**
+1. Veb-sayt formalarida serverga ma'lumot jo'natuvchi asosiy HTTP metodini toping.
+2. Flagni kiriting: \`THM{http_post_method}\``,
+        flag: "THM{http_post_method}",
+        hint: "GET metodidan farqli o'laroq ma'lumot yozuvchi POST metodi."
+      }
+    ]
+  },
+  {
+    id: "thm-mod-7",
+    title: "7. Cybersecurity & Hacking Basics (Kiberxavfsizlikka Kirish)",
+    desc: "Axborot xavfsizligi prinsiplari, ijtimoiy muhandislik xavflari va fishing (phishing).",
+    rooms: [
+      {
+        id: "thm-room-7",
+        title: "Room 7: Social Engineering & Phishing",
+        difficulty: "Boshlang'ich",
+        xp: 50,
+        tutorial: `### Social Engineering & Phishing
+Kiberxavfsizlikda eng zaif nuqta har doim inson omili hisoblanadi.
+Hujumchilar insonlarni aldash orqali maxfiy parollarni o'g'irlashda asosan soxta havola va saytlardan iborat **Phishing (Fishing)** hujumlaridan foydalanishadi.
+
+**Sizning vazifangiz:**
+1. Elektron xat yoki SMS orqali foydalanuvchi ma'lumotlarini o'g'irlaydigan ijtimoiy muhandislik turini toping.
+2. Flagni kiriting: \`THM{social_engineering_phish}\``,
+        flag: "THM{social_engineering_phish}",
+        hint: "Phishing (fishing) hujumi."
+      }
+    ]
+  },
+  {
+    id: "thm-mod-8",
+    title: "8. Network Hacking & Port Scanning (Tarmoq Hujumlari)",
+    desc: "Nmap port skanerlash, tarmoq zaifliklarini izlash va paket tahlili.",
+    rooms: [
+      {
+        id: "thm-room-8",
+        title: "Room 8: Port Scanning & Nmap",
         difficulty: "O'rta",
         xp: 50,
         tutorial: `### Port Scanning & Nmap
-Nmap - bu tarmoqdagi ochiq portlarni va xizmatlarni skanerlovchi kiber-quroldir.
-Eng mashhur skanerlash usullaridan biri **Stealth Scan (yashirin skanerlash)** bo'lib, u terminalda **-sS** bayrog'i orqali amalga oshiriladi.
+Nmap - tarmoq auditi va ochiq portlarni qidirish uchun kiber-quroldir.
+Eng mashhur skanerlash usullaridan biri **Stealth Scan (yashirin skanerlash)** bo'lib, u terminalda **-sS** bayrog'i yordamida ishga tushiriladi.
 
 **Sizning vazifangiz:**
 1. Nmap-da TCP SYN yashirin skanerlashni amalga oshiruvchi bayroqni toping.
 2. Flagni kiriting: \`THM{nmap_scan_stealth}\``,
         flag: "THM{nmap_scan_stealth}",
-        hint: "Nmap terminalida -sS buyrug'ini qo'llash."
-      },
-      {
-        id: "thm-room-11",
-        title: "Room 11: Wireshark Packet Analysis",
-        difficulty: "O'rta",
-        xp: 50,
-        tutorial: `### Wireshark Packet Analysis
-Wireshark tarmoq trafigini tahlil qiluvchi va paketlarni ushlab oluvchi dasturdir.
-Dasturning tarmoq ulanishidan yozib olingan paketlar fayli **.pcap** yoki **.pcapng** kengaytmasida saqlanadi.
-
-**Sizning vazifangiz:**
-1. Tarmoqdagi ushlangan paketlar saqlanadigan standart fayl kengaytmasini toping.
-2. Flagni kiriting: \`THM{wireshark_pcap_captured}\``,
-        flag: "THM{wireshark_pcap_captured}",
-        hint: "Flesh yoki paket oqimi saqlanadigan pcap fayli."
-      },
-      {
-        id: "thm-room-12",
-        title: "Room 12: DNS Spoofing Flag Hunt",
-        difficulty: "Qiyin",
-        xp: 50,
-        tutorial: `### DNS Spoofing Flag Hunt
-DNS Spoofing (yoki DNS Poisoning) - bu tarmoq so'rovlarini aldash orqali foydalanuvchini soxta IP manzillarga yo'naltiruvchi hujumdir.
-Bunda kiber-hujumchi keshni zaharli (poison) ma'lumotlar bilan to'ldiradi.
-
-**Sizning vazifangiz:**
-1. DNS tizimini aldash hujumi qanday ataladi?
-2. Flagni kiriting: \`THM{dns_poisoning_attack}\``,
-        flag: "THM{dns_poisoning_attack}",
-        hint: "DNS cache poisoning yoki DNS poisoning hujumi."
+        hint: "Nmap terminalida ishlatiladigan -sS bayrog'i."
       }
     ]
   },
   {
-    id: "thm-mod-web",
-    title: "4. Web Application Vulnerabilities",
-    desc: "HTTP protokoli sirlari, SQL in'eksiya ekspluatatsiyasi, XSS zaifliklari va final laboratoriya.",
+    id: "thm-mod-9",
+    title: "9. Web Exploitation (Veb Hujumlar - OWASP Top 10)",
+    desc: "Veb ilovalardagi eng xavfli kamchiliklar: SQL Injection va XSS ekspluatatsiyasi.",
     rooms: [
       {
-        id: "thm-room-13",
-        title: "Room 13: HTTP Protocol & Headers",
-        difficulty: "Boshlang'ich",
+        id: "thm-room-9",
+        title: "Room 9: SQL Injection & XSS",
+        difficulty: "Qiyin",
         xp: 50,
-        tutorial: `### HTTP Protocol & Headers
-Veb-saytlarga ma'lumot jo'natayotganda (masalan, login yoki ro'yxatdan o'tish formasi) HTTP bayonnomasining **POST** metodidan foydalaniladi.
-Bu ma'lumotlarni so'rov tanasi (body) ichida yashirin tarzda xavfsiz uzatadi.
+        tutorial: `### SQL Injection & XSS
+SQL Injection (SQLi) - ma'lumotlar bazasiga zararli so'rovlar yuborish orqali avtorizatsiyani buzuvchi zaiflikdir.
+Tizimga login parolsiz kirish uchun ishlatiladigan klassik SQL payloadi: **' OR 1=1 --** hisoblanadi.
 
 **Sizning vazifangiz:**
-1. Saytga ma'lumotlarni uzatuvchi asosiy HTTP so'rov metodini toping.
-2. Flagni kiriting: \`THM{http_post_method}\``,
-        flag: "THM{http_post_method}",
-        hint: "GET metodidan farqli ravishda POST metodi ma'lumot jo'natadi."
-      },
-      {
-        id: "thm-room-14",
-        title: "Room 14: SQL Injection Exploits",
-        difficulty: "O'rta",
-        xp: 50,
-        tutorial: `### SQL Injection Exploits
-SQL Injection (SQLi) - kiberxavfsizlikda eng keng tarqalgan, ma'lumotlar bazasini buzish zaifligidir.
-Avtorizatsiya yoki login formasini aylanib o'tish uchun ishlatiladigan klassik SQL payload: **' OR 1=1 --** hisoblanadi.
-
-**Sizning vazifangiz:**
-1. Sayt login oynasini buzish uchun ishlatiladigan eng mashhur SQL payloadni kiriting.
+1. Login sahifalarni aylanib o'tish uchun ishlatiladigan eng klassik SQL payloadi nomini kiriting.
 2. Flagni kiriting: \`THM{sqli_bypass_payload}\``,
         flag: "THM{sqli_bypass_payload}",
-        hint: "Tirnoq belgisi va har doim rost bo'lgan formula: ' OR 1=1 --"
-      },
+        hint: "Klassik tirnoqli formula: ' OR 1=1 --"
+      }
+    ]
+  },
+  {
+    id: "thm-mod-10",
+    title: "10. Final Capstone Lab (Sertifikat va Yakuniy Bosqich)",
+    desc: "Barcha bilimlarni jamlovchi final topshiriq va kiber-diplom olish.",
+    rooms: [
       {
-        id: "thm-room-15",
-        title: "Room 15: Cross-Site Scripting (XSS)",
-        difficulty: "O'rta",
-        xp: 50,
-        tutorial: `### Cross-Site Scripting (XSS)
-XSS zaifligini amalda tekshirish uchun kiberxavfsizlik xodimlari asosan brauzerda ogohlantirish oynasini chaqiruvchi JavaScript skriptidan foydalanishasi.
-Klassik payload: **<script>alert(1)</script>** orqali alert modalini ishga tushirish.
-
-**Sizning vazifangiz:**
-1. Brauzerda alert oynasini chaqiruvchi oddiy JavaScript payloadni yozing.
-2. Flagni kiriting: \`THM{xss_alert_script}\``,
-        flag: "THM{xss_alert_script}",
-        hint: "<script>alert(1)</script> ko'rinishidagi standart alert buyrug'i."
-      },
-      {
-        id: "thm-room-16",
-        title: "Room 16: Final Cert Capstone Lab",
+        id: "thm-room-10",
+        title: "Room 10: Final Graduation Flag",
         difficulty: "Qiyin",
         xp: 100,
-        tutorial: `### Final Cert Capstone Lab
-Tabriklaymiz! Siz Cyber Tech akademiyasida barcha 4 ta modulni va 15 ta kiber-xonani muvaffaqiyatli o'rganib chiqdingiz.
-Endi ushbu yakuniy bosqichni topshirib, kiberxavfsizlik akademiyasining **Eng Oliy Bitiruvchi Kiber-Diplomiga** erishing!
+        tutorial: `### Final Capstone Lab
+Tabriklaymiz! Siz platformadagi barcha 10 ta o'quv modulini muvaffaqiyatli yakunladingiz.
+Endi ushbu yakuniy flagni topshirib, kiberxavfsizlik akademiyasining **Eng Oliy Bitiruvchi Kiber-Diplomiga** erishing!
 
 **Sizning vazifangiz:**
-1. Bizning kiber-akademiyamiz nomini aniqlang.
+1. Yakuniy diplom tasdiqlash kodini kiriting.
 2. Flagni kiriting: \`THM{cyber_graduate_2026}\``,
         flag: "THM{cyber_graduate_2026}",
         hint: "Tasdiqlash kodi: THM{cyber_graduate_2026}"
@@ -3171,18 +3130,27 @@ export default function UltimateCyberTechPage() {
             {authLoading ? (
               <div className="text-xs text-slate-500 font-mono">Xavfsiz profil tekshirilmoqda...</div>
             ) : user ? (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 flex items-center gap-3">
+              <div 
+                onClick={() => { playClickSound(); setActiveTab("profile"); }}
+                className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 flex items-center gap-3 cursor-pointer hover:border-[#00D1FF]/40 hover:bg-[#00D1FF]/5 transition duration-300 relative overflow-hidden group"
+              >
+                <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[#00D1FF]/10 to-[#6C63FF]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 {user.user_metadata?.avatar_url ? (
-                  <img src={user.user_metadata.avatar_url} alt="Profile" className="h-10 w-10 rounded-full border border-[#00D1FF]" />
+                  <img src={user.user_metadata.avatar_url} alt="Profile" className="h-10 w-10 rounded-full border-2 border-[#00D1FF] shadow-[0_0_8px_#00D1FF] group-hover:scale-105 transition" />
                 ) : (
-                  <div className="h-10 w-10 bg-gradient-to-br from-[#00D1FF] to-[#6C63FF] rounded-full flex items-center justify-center font-bold text-black">
+                  <div className="h-10 w-10 bg-gradient-to-br from-[#00D1FF] to-[#6C63FF] rounded-full flex items-center justify-center font-bold text-black border border-[#00D1FF] group-hover:scale-105 transition">
                     {user.email?.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div className="text-left font-mono">
-                  <p className="text-xs font-bold text-white truncate max-w-[120px]">{studentName || user.user_metadata?.full_name || "Talaba"}</p>
-                  <p className="text-[10px] text-emerald-400 font-bold">{userPoints} OCKO</p>
-                  <button onClick={handleLogout} className="text-[9px] text-rose-400 hover:underline font-bold mt-1 block">Tizimdan chiqish</button>
+                <div className="text-left font-mono relative z-10">
+                  <p className="text-xs font-bold text-white truncate max-w-[120px] group-hover:text-[#00D1FF] transition">{studentName || user.user_metadata?.full_name || "Talaba"}</p>
+                  <p className="text-[10px] text-emerald-400 font-bold">🏆 {userPoints} OCKO</p>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); playClickSound(); handleLogout(); }} 
+                    className="text-[9px] text-rose-400 hover:underline font-bold mt-1 block relative z-20"
+                  >
+                    Tizimdan chiqish
+                  </button>
                 </div>
               </div>
             ) : (
@@ -3206,6 +3174,53 @@ export default function UltimateCyberTechPage() {
           {/* Navigation Sidebar — Premium Animated */}
           <div className="lg:col-span-3">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-md tm-ring-glow">
+              
+              <div 
+                onClick={() => { playClickSound(); setActiveTab("profile"); }}
+                className={`flex group mb-5 items-center gap-3 rounded-2xl border p-3.5 cursor-pointer transition-all duration-300 relative overflow-hidden ${
+                  activeTab === "profile" 
+                    ? "border-[#00D1FF] bg-[#00D1FF]/5 shadow-[0_0_15px_rgba(0,209,255,0.15)]" 
+                    : "border-white/10 bg-white/[0.02] hover:border-[#00D1FF]/30 hover:bg-[#00D1FF]/2"
+                }`}
+              >
+                <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[#00D1FF]/10 to-[#6C63FF]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <span className="cyber-corner cyber-corner-tl" style={{ color: activeTab === "profile" ? "#00D1FF" : "rgba(255,255,255,0.2)" }} />
+                <span className="cyber-corner cyber-corner-tr" style={{ color: activeTab === "profile" ? "#00D1FF" : "rgba(255,255,255,0.2)" }} />
+                <span className="cyber-corner cyber-corner-bl" style={{ color: activeTab === "profile" ? "#00D1FF" : "rgba(255,255,255,0.2)" }} />
+                <span className="cyber-corner cyber-corner-br" style={{ color: activeTab === "profile" ? "#00D1FF" : "rgba(255,255,255,0.2)" }} />
+                
+                {user ? (
+                  <>
+                    <div className="relative shrink-0">
+                      {user.user_metadata?.avatar_url ? (
+                        <img src={user.user_metadata.avatar_url} alt="Profile" className="h-10 w-10 rounded-full border-2 border-[#00D1FF] shadow-[0_0_8px_#00D1FF]" />
+                      ) : (
+                        <div className="h-10 w-10 bg-gradient-to-br from-[#00D1FF] to-[#6C63FF] rounded-full flex items-center justify-center font-black text-black border border-[#00D1FF]">
+                          {user.email?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-[#0b0f1a] animate-pulse" />
+                    </div>
+                    <div className="text-left font-mono min-w-0 flex-1 relative z-10">
+                      <p className="text-xs font-black text-white truncate group-hover:text-[#00D1FF] transition">{studentName || user.user_metadata?.full_name || "Talaba"}</p>
+                      <p className="text-[10px] text-emerald-400 font-black mt-0.5 flex items-center gap-1">
+                        🏆 {userPoints} OCKO
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="h-10 w-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 group-hover:text-[#00D1FF] transition">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <div className="text-left font-mono relative z-10">
+                      <p className="text-xs font-bold text-slate-300 group-hover:text-white transition">Tizimga kirish</p>
+                      <p className="text-[9px] text-slate-500 mt-0.5">Sinxronizatsiya qilish</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
               {/* Mobile toggle */}
               <div className="flex items-center justify-between border-b border-white/10 pb-4 lg:hidden">
                 <div className="flex items-center gap-2">
@@ -3291,6 +3306,11 @@ export default function UltimateCyberTechPage() {
                         {isActive && <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full" style={{ background: themeColors.solid, boxShadow: `0 0 8px 2px ${themeColors.solid}` }} />}
                         <Icon className="relative z-10 h-4 w-4 shrink-0 transition-all duration-300 group-hover:scale-125 group-hover:-rotate-6" style={{ color: isActive ? themeColors.solid : undefined }} />
                         <span className="relative z-10 flex-1 transition-transform duration-300 group-hover:translate-x-1">{label}</span>
+                        {tab === "testlar" && (
+                          <span className="relative z-10 text-[9px] bg-cyan-500/25 text-[#00D1FF] border border-[#00D1FF]/40 px-1.5 py-0.2 rounded-full font-mono font-black shadow-[0_0_5px_rgba(0,209,255,0.2)]">
+                            {allQuizzes.length}
+                          </span>
+                        )}
                         {isActive && <span className="relative z-10 h-1.5 w-1.5 rounded-full animate-breathe shrink-0" style={{ backgroundColor: themeColors.solid, boxShadow: `0 0 6px ${themeColors.solid}` }} />}
                       </button>
                     );
@@ -3353,6 +3373,11 @@ export default function UltimateCyberTechPage() {
 
                         <Icon className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110" style={{ color: isActive ? themeColors.solid : undefined }} />
                         <span className="flex-1 transition-transform duration-300 group-hover:translate-x-1">{label}</span>
+                        {tab === "testlar" && (
+                          <span className="text-[9px] bg-cyan-500/25 text-[#00D1FF] border border-[#00D1FF]/40 px-1.5 py-0.2 rounded-full font-mono font-black shadow-[0_0_5px_rgba(0,209,255,0.2)]">
+                            {allQuizzes.length}
+                          </span>
+                        )}
                         {isActive && <span className="h-1.5 w-1.5 rounded-full animate-breathe shrink-0" style={{ backgroundColor: themeColors.solid, boxShadow: `0 0 6px ${themeColors.solid}` }} />}
                       </button>
                     );
@@ -3528,6 +3553,158 @@ export default function UltimateCyberTechPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Immersive Cyber Flowchart Map */}
+                <div className="rounded-2xl border border-[#00d1ff]/10 bg-[#0c0f1e]/80 p-6 shadow-2xl relative overflow-hidden tm-ring-glow">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,209,255,0.05),transparent)] pointer-events-none" />
+                  
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-4 mb-6 gap-2">
+                    <div>
+                      <h4 className="text-sm font-black text-white flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-[#00D1FF] animate-pulse" />
+                        Kiber-Ta&apos;lim Interaktiv Karta
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Xakerlik va IT cho&apos;qqisini zabt etish xaritasi. Bosqichni tanlang.</p>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                        <span className="text-slate-400 text-[10px]">Tugallangan</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#00d1ff]" />
+                        <span className="text-slate-400 text-[10px]">Faol</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-slate-700" />
+                        <span className="text-slate-500 text-[10px]">Yopiq</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Horizontal Scrollable Timeline Container */}
+                  <div className="relative overflow-x-auto pb-4 scrollbar-none">
+                    <div className="flex items-start min-w-[1200px] px-4 relative py-6">
+                      
+                      {/* Connected Glowing SVG Line Background */}
+                      <div className="absolute top-16 left-8 right-8 h-1 z-0 pointer-events-none">
+                        <div className="h-full w-full bg-slate-800 rounded-full relative">
+                          {/* Completed progress line overlay */}
+                          <div 
+                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-[#00D1FF] transition-all duration-1000"
+                            style={{ 
+                              width: `${Math.min(100, Math.max(0, ((thmCompletedRooms.length) / 10) * 100))}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Timeline Steps */}
+                      {THM_MODULES.map((mod, modIdx) => {
+                        const isExpanded = activeThmModule === modIdx;
+                        const completedInModule = mod.rooms.filter(r => thmCompletedRooms.includes(r.id)).length;
+                        const totalInModule = mod.rooms.length;
+                        const percent = Math.round((completedInModule / totalInModule) * 100);
+                        
+                        // Check if unlocked: first step or previous step's room is completed
+                        const allRoomsList = THM_MODULES.flatMap(m => m.rooms);
+                        const isUnlocked = modIdx === 0 || mod.rooms.every(room => {
+                          const globalIdx = allRoomsList.findIndex(r => r.id === room.id);
+                          return globalIdx <= 0 || thmCompletedRooms.includes(allRoomsList[globalIdx - 1].id);
+                        }) || (modIdx > 0 && thmCompletedRooms.includes(THM_MODULES[modIdx - 1].rooms[0].id));
+
+                        const isCompleted = percent === 100;
+                        const isActive = isUnlocked && !isCompleted;
+
+                        // Customize icons for each step
+                        let StepIcon = Cpu;
+                        if (modIdx === 1) StepIcon = Globe;
+                        else if (modIdx === 2) StepIcon = Terminal;
+                        else if (modIdx === 3) StepIcon = Server;
+                        else if (modIdx === 4) StepIcon = Code;
+                        else if (modIdx === 5) StepIcon = Database;
+                        else if (modIdx === 6) StepIcon = ShieldAlert;
+                        else if (modIdx === 7) StepIcon = Wifi;
+                        else if (modIdx === 8) StepIcon = FileCode;
+                        else if (modIdx === 9) StepIcon = Award;
+
+                        return (
+                          <div 
+                            key={mod.id} 
+                            onClick={() => {
+                              if (isUnlocked) {
+                                playClickSound();
+                                setActiveThmModule(modIdx);
+                                if (mod.rooms.length > 0) {
+                                  setActiveThmRoom(mod.rooms[0]);
+                                  setThmFeedback(null);
+                                  setThmFlagInput("");
+                                }
+                              } else {
+                                playBuzzSound();
+                              }
+                            }}
+                            className={`flex-1 flex flex-col items-center text-center relative z-10 group cursor-pointer transition-all duration-300 ${
+                              !isUnlocked ? "opacity-50" : ""
+                            }`}
+                          >
+                            {/* Connector glowing dot wrapper */}
+                            <div className="relative mb-4">
+                              {/* Step circle */}
+                              <div 
+                                className={`h-14 w-14 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
+                                  isCompleted 
+                                    ? "bg-emerald-950/80 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                                    : isActive
+                                    ? "bg-cyan-950/80 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(0,209,255,0.4)] animate-pulse"
+                                    : isUnlocked
+                                    ? "bg-slate-900 border-[#6C63FF] text-[#6C63FF] shadow-[0_0_10px_rgba(108,99,255,0.2)]"
+                                    : "bg-slate-950 border-slate-800 text-slate-600"
+                                } group-hover:scale-110`}
+                              >
+                                <StepIcon className="h-6 w-6" />
+                              </div>
+
+                              {/* Small locked / completed label badge overlay */}
+                              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#0b0f1a] border border-white/10 flex items-center justify-center text-[9px]">
+                                {isCompleted ? (
+                                  <Check className="h-3 w-3 text-emerald-400" />
+                                ) : !isUnlocked ? (
+                                  <Lock className="h-2.5 w-2.5 text-slate-500" />
+                                ) : (
+                                  <span className="font-bold text-cyan-400 font-mono">{modIdx + 1}</span>
+                                )}
+                              </span>
+                            </div>
+
+                            {/* Node Title & Description */}
+                            <div className="px-2">
+                              <h5 
+                                className={`text-[11px] font-black tracking-wide leading-tight transition-colors duration-300 ${
+                                  isExpanded
+                                    ? "text-cyan-400"
+                                    : isCompleted
+                                    ? "text-slate-300"
+                                    : isUnlocked
+                                    ? "text-white"
+                                    : "text-slate-500"
+                                } group-hover:text-cyan-300`}
+                              >
+                                {mod.title.split(".")[1]?.trim() || mod.title}
+                              </h5>
+                              <p className="text-[9px] text-slate-500 mt-1 line-clamp-2 leading-relaxed max-w-[110px] mx-auto">
+                                {mod.desc}
+                              </p>
+                            </div>
+
+                          </div>
+                        );
+                      })}
+
+                    </div>
+                  </div>
+
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -4250,17 +4427,42 @@ export default function UltimateCyberTechPage() {
                 
                 {!activeQuiz ? (
                   <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/5 pb-4">
                       <div>
-                        <h3 className="text-xl font-bold text-white flex flex-wrap items-center gap-2">
-                          <Award className="h-5 w-5 text-cyan-400" /> Kiber Test Arena
-                          <span className="text-[10px] bg-slate-800 text-[#00D1FF] border border-[#00D1FF]/20 px-2 py-0.5 rounded-full font-mono">
-                            DB: {dynamicQuizzes.length} ta yuklandi
-                          </span>
+                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                          <Award className="h-5.5 w-5.5 text-cyan-400 animate-pulse" /> Kiber Test Arena
                         </h3>
-                        <p className="text-xs text-slate-500 mt-1">Sertifikat olish va bilimingizni sinash uchun testlar.</p>
+                        <p className="text-xs text-slate-500 mt-1">Bilimingizni sinash va kiber-darajangizni oshirish uchun test markazi.</p>
                       </div>
-                      <p className="text-xs text-slate-500">Muvaffaqiyat ko&apos;rsatkichi: 80% +</p>
+                      <p className="text-xs text-slate-500 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg font-mono">Minimal ko&apos;rsatkich: 80% +</p>
+                    </div>
+
+                    {/* Premium Cyber Quiz Stats Grid */}
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                      <div className="rounded-2xl border border-white/5 bg-white/[0.01] p-4 text-center hover:border-cyan-500/25 transition-all duration-300 relative overflow-hidden group">
+                        <span className="cyber-corner cyber-corner-tl" style={{ color: "#00D1FF" }} />
+                        <span className="cyber-corner cyber-corner-br" style={{ color: "#00D1FF" }} />
+                        <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Jami Testlar</p>
+                        <p className="text-3xl font-black text-white mt-1 group-hover:scale-105 transition duration-300">{allQuizzes.length} ta</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/5 bg-white/[0.01] p-4 text-center hover:border-purple-500/25 transition-all duration-300 relative overflow-hidden group">
+                        <span className="cyber-corner cyber-corner-tl" style={{ color: "#a855f7" }} />
+                        <span className="cyber-corner cyber-corner-br" style={{ color: "#a855f7" }} />
+                        <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">AI Yaratgan</p>
+                        <p className="text-3xl font-black text-transparent bg-gradient-to-r from-[#00D1FF] to-purple-400 bg-clip-text mt-1 group-hover:scale-105 transition duration-300">{dynamicQuizzes.length} ta</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/5 bg-white/[0.01] p-4 text-center hover:border-pink-500/25 transition-all duration-300 relative overflow-hidden group">
+                        <span className="cyber-corner cyber-corner-tl" style={{ color: "#ec4899" }} />
+                        <span className="cyber-corner cyber-corner-br" style={{ color: "#ec4899" }} />
+                        <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Darslik Testlari</p>
+                        <p className="text-3xl font-black text-pink-400 mt-1 group-hover:scale-105 transition duration-300">{allQuizzes.length - dynamicQuizzes.length} ta</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/5 bg-white/[0.01] p-4 text-center hover:border-emerald-500/25 transition-all duration-300 relative overflow-hidden group">
+                        <span className="cyber-corner cyber-corner-tl" style={{ color: "#10b981" }} />
+                        <span className="cyber-corner cyber-corner-br" style={{ color: "#10b981" }} />
+                        <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Topshirilganlar</p>
+                        <p className="text-3xl font-black text-emerald-400 mt-1 group-hover:scale-105 transition duration-300">{Object.keys(completedQuizzes).length} ta</p>
+                      </div>
                     </div>
 
                     {dbErrorMsg && (

@@ -49,40 +49,14 @@ body {
   }
 }
 
-/* Cathode Ray Tube Scanlines Overlay */
+/* Cathode Ray Tube Scanlines Overlay (Disabled for maximum clarity and sharp readability) */
 body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%), 
-              linear-gradient(90deg, rgba(255, 0, 85, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 209, 255, 0.02));
-  background-size: 100% 4px, 6px 100%;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.65;
+  display: none;
 }
 
-/* CRT screen flicker */
-@keyframes crt-flicker {
-  0% { opacity: 0.985; }
-  50% { opacity: 0.995; }
-  100% { opacity: 0.985; }
-}
-
+/* CRT screen flicker (Disabled for sharp readability) */
 body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: radial-gradient(circle, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
-  pointer-events: none;
-  z-index: 9998;
-  animation: crt-flicker 0.15s infinite;
+  display: none;
 }
 
 /* Glow utilities */

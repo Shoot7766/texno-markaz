@@ -55,6 +55,7 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
     lesson_times: {} as Record<string, string>,
     lesson_days: [] as string[],
     comment: "",
+    telegram: "",
   });
   const [editForm, setEditForm] = useState({
     first_name: "",
@@ -71,6 +72,7 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
     lesson_days: [] as string[],
     comment: "",
     status: "active" as StudentStatus,
+    telegram: "",
   });
 
   const filtered = useMemo(() => {
@@ -104,6 +106,9 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
     setFormSuccess(null);
     setSaving(true);
     try {
+      const tgUsername = form.telegram.trim().replace(/^@/, "");
+      const finalComment = tgUsername ? `TG: @${tgUsername}${form.comment ? ` | ${form.comment}` : ""}` : form.comment;
+
       await createManualStudent({
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
@@ -117,7 +122,7 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
         payment_due_date: form.payment_due_date || null,
         lesson_time: JSON.stringify(form.lesson_times),
         lesson_days: form.lesson_days,
-        comment: form.comment.trim(),
+        comment: finalComment.trim(),
       });
       setForm((prev) => ({
         ...prev,
@@ -132,6 +137,7 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
         lesson_times: {},
         lesson_days: [],
         comment: "",
+        telegram: "",
       }));
       setFormSuccess("O‘quvchi muvaffaqiyatli qo‘shildi.");
       router.refresh();
@@ -148,6 +154,11 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
   function openEdit(st: Student) {
     setEditError(null);
     setEditId(st.id);
+
+    const tgMatch = st.comment?.match(/^TG:\s*@([a-zA-Z0-9_]+)(?:\s*\|\s*(.*))?$/);
+    const parsedTelegram = tgMatch ? tgMatch[1] : "";
+    const parsedComment = tgMatch ? (tgMatch[2] || "") : (st.comment || "");
+
     setEditForm({
       first_name: st.first_name,
       last_name: st.last_name,
@@ -161,8 +172,9 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
       payment_due_date: st.payment_due_date ?? "",
       lesson_times: parseTimeMap(st.lesson_time),
       lesson_days: st.lesson_days ?? [],
-      comment: st.comment ?? "",
+      comment: parsedComment,
       status: st.status,
+      telegram: parsedTelegram,
     });
   }
 
@@ -171,6 +183,9 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
     setEditSaving(true);
     setEditError(null);
     try {
+      const tgUsername = editForm.telegram.trim().replace(/^@/, "");
+      const finalComment = tgUsername ? `TG: @${tgUsername}${editForm.comment ? ` | ${editForm.comment}` : ""}` : editForm.comment;
+
       await updateStudent(editId, {
         first_name: editForm.first_name.trim(),
         last_name: editForm.last_name.trim(),
@@ -184,7 +199,7 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
         payment_due_date: editForm.payment_due_date || null,
         lesson_time: JSON.stringify(editForm.lesson_times),
         lesson_days: editForm.lesson_days,
-        comment: editForm.comment.trim(),
+        comment: finalComment.trim(),
         status: editForm.status,
       });
       setEditId(null);
@@ -225,6 +240,12 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
             placeholder="Ota-ona telefoni"
             value={form.parent_phone}
             onChange={(e) => setForm((p) => ({ ...p, parent_phone: e.target.value }))}
+            className="rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <input
+            placeholder="Telegram user (masalan: sardor_dev)"
+            value={form.telegram}
+            onChange={(e) => setForm((p) => ({ ...p, telegram: e.target.value }))}
             className="rounded-lg border border-slate-200 px-3 py-2"
           />
           <select
@@ -386,7 +407,28 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
                   <td className="px-4 py-3 font-medium text-slate-900">
                     {st.first_name} {st.last_name}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{st.phone}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    <div>{st.phone}</div>
+                    {(() => {
+                      const tgMatch = st.comment?.match(/^TG:\s*@([a-zA-Z0-9_]+)/);
+                      if (tgMatch) {
+                        return (
+                          <a
+                            href={`https://t.me/${tgMatch[1]}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] text-cyan-600 hover:text-cyan-800 font-semibold mt-1"
+                          >
+                            <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.24-5.54 3.65-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.75 3.88-1.69 6.46-2.8 7.74-3.32 3.69-1.5 4.45-1.76 4.95-1.77.11 0 .36.03.52.16.14.11.18.26.2.37.02.13.03.38.01.52z"/>
+                            </svg>
+                            @{tgMatch[1]}
+                          </a>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </td>
                   <td className="px-4 py-3">{courseName(st.course_id)}</td>
                   <td className="px-4 py-3">
                     <select
@@ -489,6 +531,14 @@ export function StudentsTable({ initialStudents, courses, groups, attendedCounts
                 onChange={(e) => setEditForm((p) => ({ ...p, parent_phone: e.target.value }))}
                 className="rounded-lg border border-slate-200 px-3 py-2"
               />
+              <FormField label="Telegram user">
+                <input
+                  placeholder="sardor_dev"
+                  value={editForm.telegram}
+                  onChange={(e) => setEditForm((p) => ({ ...p, telegram: e.target.value }))}
+                  className="rounded-lg border border-slate-200 px-3 py-2"
+                />
+              </FormField>
               <select
                 value={editForm.course_id}
                 onChange={(e) => {

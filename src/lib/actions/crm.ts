@@ -104,7 +104,7 @@ export async function upsertAttendance(
   studentId: string,
   groupId: string | null,
   date: string,
-  status: "keldi" | "kelmadi" | "kechikdi"
+  status: "keldi" | "kelmadi" | "kechikdi" | ""
 ) {
   const { supabase, user } = await requireAdmin();
   if (groupId) {
@@ -122,12 +122,16 @@ export async function upsertAttendance(
       .eq("attendance_date", date)
       .is("group_id", null);
   }
-  await supabase.from("attendance").insert({
-    student_id: studentId,
-    group_id: groupId,
-    attendance_date: date,
-    status,
-  });
+
+  if (status) {
+    await supabase.from("attendance").insert({
+      student_id: studentId,
+      group_id: groupId,
+      attendance_date: date,
+      status,
+    });
+  }
+
   await supabase.from("activity_logs").insert({
     actor_id: user.id,
     action: "attendance_mark",
@@ -137,6 +141,7 @@ export async function upsertAttendance(
   });
   revalidatePath("/admin/davomat");
 }
+
 
 export async function addPayment(
   studentId: string,
