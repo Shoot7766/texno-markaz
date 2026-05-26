@@ -1821,6 +1821,7 @@ export default function UltimateCyberTechPage() {
   const [readerFontSize, setReaderFontSize] = useState<"sm" | "md" | "lg" | "xl">("md");
   const [readerZoom, setReaderZoom] = useState(100);
   const [bookBookmarks, setBookBookmarks] = useState<Record<string, number>>({});
+  const [booksList, setBooksList] = useState<any[]>(BOOKS_DATA);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [aiSummarizing, setAiSummarizing] = useState(false);
 
@@ -2197,6 +2198,24 @@ export default function UltimateCyberTechPage() {
   useEffect(() => {
     const t = setTimeout(() => setMenuMounted(true), 150);
     return () => clearTimeout(t);
+  }, []);
+
+  // Fetch dynamic books list on mount
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const res = await fetch("/api/cybertech/books");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            setBooksList(data);
+          }
+        }
+      } catch (err) {
+        console.error("Kitoblarni olishda xatolik:", err);
+      }
+    };
+    fetchBooks();
   }, []);
 
   // Check auth state on mount
@@ -2892,7 +2911,7 @@ export default function UltimateCyberTechPage() {
   };
 
   const handleOpenBookFromRoadmap = (bookId: string) => {
-    const book = BOOKS_DATA.find((b) => b.id === bookId);
+    const book = booksList.find((b) => b.id === bookId);
     if (book) {
       handleOpenBook(book);
     }
@@ -3022,14 +3041,14 @@ export default function UltimateCyberTechPage() {
 
   // Book filtering
   const filteredBooks = useMemo(() => {
-    return BOOKS_DATA.filter((b) => {
+    return booksList.filter((b) => {
       const matchesSearch = b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             b.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             b.summary.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCat = selectedCategory === "All" || b.category === selectedCategory;
       return matchesSearch && matchesCat;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [booksList, searchQuery, selectedCategory]);
 
   // Badge list descriptions
   const BADGES = [
@@ -3047,7 +3066,7 @@ export default function UltimateCyberTechPage() {
     const bookKeys = Object.keys(bookBookmarks);
     if (bookKeys.length === 0) return null;
     const lastBookId = bookKeys[bookKeys.length - 1];
-    const book = BOOKS_DATA.find((b) => b.id === lastBookId);
+    const book = booksList.find((b) => b.id === lastBookId);
     if (!book) return null;
     const activeChapter = bookBookmarks[lastBookId];
     return {
@@ -3056,7 +3075,7 @@ export default function UltimateCyberTechPage() {
       chapterTitle: book.chapters[activeChapter]?.title || "Mavzu",
       pct: Math.round(((activeChapter + 1) / book.chapters.length) * 100)
     };
-  }, [bookBookmarks]);
+  }, [booksList, bookBookmarks]);
 
   return (
     <div className="min-h-screen bg-[#0b0f1a] text-slate-200">
