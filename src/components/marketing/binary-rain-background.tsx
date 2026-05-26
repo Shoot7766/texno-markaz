@@ -2,6 +2,18 @@
 
 import { useEffect, useRef } from "react";
 
+interface RainStream {
+  x: number;
+  y: number; // current pixel position of the head
+  speed: number;
+  fontSize: number;
+  color: string;
+  opacity: number;
+  glow: boolean;
+  chars: string[];
+  maxLength: number;
+}
+
 export function BinaryRainBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -12,28 +24,55 @@ export function BinaryRainBackground() {
     if (!ctx) return;
 
     let animId: number;
+    const streams: RainStream[] = [];
 
-    const fontSize = 22; // Much larger characters for premium visibility
-    let cols = Math.floor(canvas.width / fontSize);
-    
-    // Arrays for column states
-    const drops: number[] = [];
-    const speeds: number[] = [];
-    const colors: string[] = [];
+    const initializeStreams = () => {
+      streams.length = 0;
+      // Beautiful density: roughly one stream per 20-30 pixels of screen width
+      const spacing = 24;
+      const count = Math.floor(canvas.width / spacing);
 
-    const initializeColumns = () => {
-      cols = Math.floor(canvas.width / fontSize);
-      drops.length = 0;
-      speeds.length = 0;
-      colors.length = 0;
+      for (let i = 0; i < count; i++) {
+        // Depth cue: 0.15 (far background) to 1.0 (near foreground)
+        const depth = 0.15 + Math.random() * 0.85;
+        
+        // Font sizes scaled according to depth (ranging from 12px to 42px)
+        const fontSize = Math.floor(12 + depth * 30);
+        
+        // Speed proportional to depth/size for genuine 3D parallax falling speed
+        const speed = 0.8 + depth * 2.8;
+        
+        // Cyberpunk colors: 70% Matrix neon green, 30% digital cyan
+        const color = Math.random() > 0.3 ? "#39ff14" : "#00d1ff";
+        
+        // Opacity proportional to depth so background streams fade out gracefully
+        const opacity = 0.1 + depth * 0.8;
+        
+        // High depth streams emit a strong neon glow
+        const glow = depth > 0.65;
+        
+        // Random stream character length (8 to 22 characters)
+        const maxLength = Math.floor(8 + depth * 14);
+        
+        // Populate initial binary trail
+        const chars: string[] = [];
+        for (let j = 0; j < maxLength; j++) {
+          chars.push(Math.random() > 0.5 ? "1" : "0");
+        }
 
-      for (let i = 0; i < cols; i++) {
-        // Start columns at random off-screen positions
-        drops.push(Math.floor(Math.random() * -50));
-        // Vary speeds to create a rich 3D parallax depth effect (0.75x to 1.75x)
-        speeds.push(0.65 + Math.random() * 1.15);
-        // Curate dual-color cyberpunk mix: 80% Matrix Green, 20% Cyber Cyan
-        colors.push(Math.random() > 0.22 ? "#39ff14" : "#00d1ff");
+        streams.push({
+          // Slightly jitter horizontal position for natural volumetric dispersion
+          x: i * spacing + (Math.random() * 12 - 6),
+          // Stagger starting heights so they enter the screen sequentially
+          y: Math.random() * -canvas.height - 100,
+          speed,
+          fontSize,
+          color,
+          opacity,
+          glow,
+          chars,
+          maxLength,
+        });
       }
     };
 
@@ -41,7 +80,7 @@ export function BinaryRainBackground() {
       const parent = canvas.parentElement;
       canvas.width = parent ? parent.offsetWidth : window.innerWidth;
       canvas.height = parent ? parent.offsetHeight : window.innerHeight;
-      initializeColumns();
+      initializeStreams();
     };
 
     const ro = new ResizeObserver(resize);
@@ -49,45 +88,79 @@ export function BinaryRainBackground() {
     resize();
 
     const draw = () => {
-      // Translucent fill for rich motion trails
-      ctx.fillStyle = "rgba(5, 7, 12, 0.14)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Clear the canvas completely on each frame to draw beautiful, crisp, glows without blurring artifacts
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.font = `black ${fontSize}px 'Fira Code', 'Courier New', monospace`;
+      for (let s = 0; s < streams.length; s++) {
+        const stream = streams[s];
 
-      for (let i = 0; i < cols; i++) {
-        const char = Math.random() > 0.5 ? "1" : "0";
-        const y = drops[i] * fontSize;
-        const color = colors[i];
+        // Draw each stream character in its trail from head to tail
+        for (let i = 0; i < stream.maxLength; i++) {
+          const charY = stream.y - i * stream.fontSize;
 
-        // Draw shadow effect for neon light emission
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 8;
+          // Skip drawing if character is off-screen
+          if (charY < -stream.fontSize || charY > canvas.height + stream.fontSize) {
+            continue;
+          }
 
-        // Leading character is brighter and has a direct glow
-        if (Math.random() > 0.94) {
-          ctx.fillStyle = "#ffffff";
-          ctx.shadowBlur = 18;
-        } else {
-          const alpha = 0.2 + Math.random() * 0.7; // Vary alpha for texture
-          // Convert hex colors to translucent rgba
-          ctx.fillStyle = color === "#39ff14" 
-            ? `rgba(57, 255, 20, ${alpha})` 
-            : `rgba(0, 209, 255, ${alpha})`;
+          const char = stream.chars[i] || "1";
+          
+          // Tail opacity graduates from 1.0 (head) to 0.05 (tail end)
+          const tailFade = 1.0 - i / stream.maxLength;
+          
+          // Edge fade near bottom of the banner for seamless transition
+          const bottomFade = Math.min(1, (canvas.height - charY) / 120);
+          
+          const currentOpacity = stream.opacity * tailFade * Math.max(0, bottomFade);
+          if (currentOpacity <= 0) continue;
+
+          // Head character (i === 0) is drawn with extra brightness and optional neon glow
+          if (i === 0) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity * 1.1})`;
+            if (stream.glow) {
+              ctx.shadowColor = stream.color;
+              ctx.shadowBlur = 18;
+            } else {
+              ctx.shadowBlur = 0;
+            }
+          } else {
+            ctx.shadowBlur = 0;
+            // Digital green or cyan body
+            if (stream.color === "#39ff14") {
+              ctx.fillStyle = `rgba(57, 255, 20, ${currentOpacity})`;
+            } else {
+              ctx.fillStyle = `rgba(0, 209, 255, ${currentOpacity})`;
+            }
+          }
+
+          ctx.font = `bold ${stream.fontSize}px 'Fira Code', 'Courier New', monospace`;
+          ctx.fillText(char, stream.x, charY);
         }
 
-        ctx.fillText(char, i * fontSize, y);
-        ctx.shadowBlur = 0; // Reset shadow blur for other canvas draws
+        // Reset drop shadow for subsequent draws
+        ctx.shadowBlur = 0;
 
-        // Reset column when it goes past canvas bottom (randomized chance)
-        if (y > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-          speeds[i] = 0.65 + Math.random() * 1.15;
+        // Move the stream down
+        stream.y += stream.speed;
+
+        // Randomly morph symbols within the trail at a low rate for dynamic matrix texture
+        if (Math.random() > 0.95) {
+          const randIdx = Math.floor(Math.random() * stream.chars.length);
+          stream.chars[randIdx] = Math.random() > 0.5 ? "1" : "0";
         }
-        
-        // Advance column based on its individual speed factor
-        drops[i] += speeds[i];
+
+        // Reset stream once it falls completely off-screen
+        const streamTotalHeight = stream.maxLength * stream.fontSize;
+        if (stream.y - streamTotalHeight > canvas.height) {
+          stream.y = Math.random() * -300 - 50;
+          stream.x = Math.random() * canvas.width;
+          // Re-randomize binary symbols
+          for (let j = 0; j < stream.maxLength; j++) {
+            stream.chars[j] = Math.random() > 0.5 ? "1" : "0";
+          }
+        }
       }
+
       animId = requestAnimationFrame(draw);
     };
 
@@ -103,10 +176,10 @@ export function BinaryRainBackground() {
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
       <canvas 
         ref={canvasRef} 
-        className="w-full h-full opacity-[0.25]" // Elegant opacity so it doesn't distract readability
+        className="w-full h-full opacity-[0.45]" // Amplified visibility for amazing aesthetic impact
       />
-      {/* Visual fading mask: smooth transition into the black background at the bottom */}
-      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#05070c] to-transparent pointer-events-none" />
+      {/* High-quality smooth bottom gradient overlay blending into cyber-black */}
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#05070c] via-[#05070c]/80 to-transparent pointer-events-none" />
     </div>
   );
 }
