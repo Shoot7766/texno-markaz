@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createServiceClient } from "@/lib/supabase/admin";
+import fs from "fs/promises";
+import path from "path";
 
 export async function processCrmAgentPrompt(userPrompt: string): Promise<any> {
   const serviceClient = createServiceClient();
@@ -12,6 +14,16 @@ export async function processCrmAgentPrompt(userPrompt: string): Promise<any> {
   const { data: payments } = await serviceClient.from("payments").select("id, student_id, amount, method, paid_at, note");
   const { data: attendance } = await serviceClient.from("attendance").select("id, student_id, group_id, attendance_date, status");
 
+  // Load books list
+  let books: any[] = [];
+  try {
+    const booksFilePath = path.join(process.cwd(), "src/app/(marketing)/cyber-tech/books.json");
+    const fileContent = await fs.readFile(booksFilePath, "utf-8");
+    books = JSON.parse(fileContent);
+  } catch (error) {
+    console.error("Error reading books.json in processCrmAgentPrompt:", error);
+  }
+
   const crmContext = {
     courses: courses ?? [],
     groups: groups ?? [],
@@ -19,6 +31,7 @@ export async function processCrmAgentPrompt(userPrompt: string): Promise<any> {
     leads: leads ?? [],
     payments: payments ?? [],
     attendance: attendance ?? [],
+    books: books,
   };
 
   // 2. API Keyni yuklash
@@ -53,6 +66,9 @@ ${JSON.stringify(crmContext.payments)}
 
 DAVOMAT LOGLARI (attendance):
 ${JSON.stringify(crmContext.attendance)}
+
+KUTUBXONADAGI KIBER KITOBLAR (books):
+${JSON.stringify(crmContext.books)}
 ---
 
 Sizning Boshqaruvchi sifatidagi prinsiplaringiz va vazifalaringiz:
@@ -225,6 +241,21 @@ Siz aniqlashi mumkin bo'lgan ACTION'lar va ularning JSON formatlari:
     "group_id": "GURUH_UUID"
   },
   "message": "Guruh muvaffaqiyatli o'chirildi!"
+}
+
+12. Barcha kiber kitoblarni o'chirish:
+{
+  "action": "DELETE_ALL_BOOKS",
+  "message": "Barcha kiber kitoblar kutubxonadan butunlay o'chirildi!"
+}
+
+13. Ma'lum bir kiber kitobni o'chirish:
+{
+  "action": "DELETE_BOOK",
+  "params": {
+    "book_id": "KITOB_ID"
+  },
+  "message": "Kitob kutubxonadan muvaffaqiyatli olib tashlandi!"
 }
 
 Agar ma'lumot yetarli bo'lmasa yoki tushunarsiz so'rov bo'lsa:
@@ -482,6 +513,22 @@ Muhim qoidalar:
         attendance_date: date,
         status: p.status || "keldi",
       });
+    }
+
+  } else if (aiAction.action === "DELETE_ALL_BOOKS") {
+    const booksFilePath = path.join(process.cwd(), "src/app/(marketing)/cyber-tech/books.json");
+    await fs.writeFile(booksFilePath, JSON.stringify([], null, 2), "utf-8");
+
+  } else if (aiAction.action === "DELETE_BOOK") {
+    const p = aiAction.params;
+    const booksFilePath = path.join(process.cwd(), "src/app/(marketing)/cyber-tech/books.json");
+    try {
+      const fileContent = await fs.readFile(booksFilePath, "utf-8");
+      const booksList = JSON.parse(fileContent);
+      const updated = booksList.filter((b: any) => b.id !== p.book_id);
+      await fs.writeFile(booksFilePath, JSON.stringify(updated, null, 2), "utf-8");
+    } catch (e) {
+      console.error("Error deleting specific book in helper handler:", e);
     }
   }
 
