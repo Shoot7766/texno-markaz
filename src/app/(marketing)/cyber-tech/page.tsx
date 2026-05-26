@@ -2836,6 +2836,43 @@ export default function UltimateCyberTechPage() {
     setActiveTab("kitoblar");
   };
 
+  const handleDownloadBook = (book: any) => {
+    if (!book) return;
+    playClickSound();
+    
+    // Construct rich text content
+    let content = `==================================================\n`;
+    content += `KIBER-KUTUBXONA: ${book.title.toUpperCase()}\n`;
+    content += `==================================================\n\n`;
+    content += `Muallif: ${book.author}\n`;
+    content += `Kategoriya: ${book.category}\n`;
+    content += `Sahifalar: ${book.pages}\n`;
+    content += `Qisqacha mazmuni: ${book.summary}\n\n`;
+    content += `--------------------------------------------------\n`;
+    content += `KITOB BOBI VA DARSLARI\n`;
+    content += `--------------------------------------------------\n\n`;
+    
+    if (Array.isArray(book.chapters)) {
+      book.chapters.forEach((ch: any, idx: number) => {
+        content += `${idx + 1}-BOB: ${ch.title.toUpperCase()}\n`;
+        content += `--------------------------------------------------\n`;
+        content += `${ch.content}\n\n`;
+        content += `==================================================\n\n`;
+      });
+    }
+    
+    // Create blob and trigger download
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${book.title.replace(/[^a-zA-Z0-9]/g, "_")}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleBookChapterChange = (newIdx: number) => {
     if (!activeBook) return;
     playClickSound();
@@ -4050,11 +4087,16 @@ export default function UltimateCyberTechPage() {
                               <h4 className="text-sm font-bold text-white mt-1 leading-snug">{book.title}</h4>
                               <p className="text-slate-400 text-xs mt-1.5 line-clamp-2">{book.summary}</p>
                             </div>
-                            <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-3">
-                              <span className="text-[10px] text-slate-500 truncate max-w-[100px]">Muallif: {book.author}</span>
-                              <button onClick={() => handleOpenBook(book)} className="text-[11px] font-bold text-[#00D1FF] hover:underline flex items-center gap-1">
-                                O&apos;qish <Play className="h-2 w-2" />
-                              </button>
+                            <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-3 gap-2">
+                              <span className="text-[10px] text-slate-500 truncate max-w-[80px]">Muallif: {book.author}</span>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => handleDownloadBook(book)} className="text-[10px] font-medium text-pink-400 hover:text-pink-300 flex items-center gap-1 hover:underline">
+                                  Yuklash
+                                </button>
+                                <button onClick={() => handleOpenBook(book)} className="text-[11px] font-bold text-[#00D1FF] hover:underline flex items-center gap-1">
+                                  O&apos;qish <Play className="h-2 w-2" />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -4081,6 +4123,14 @@ export default function UltimateCyberTechPage() {
                       {/* Toolbar actions */}
                       <div className="flex items-center gap-3">
                         
+                        {/* Download Book Button */}
+                        <button
+                          onClick={() => handleDownloadBook(activeBook)}
+                          className="px-3 py-1.5 rounded-lg border border-pink-500/30 bg-pink-500/10 text-pink-300 text-xs font-bold flex items-center gap-1.5 hover:bg-pink-500/20"
+                        >
+                          <BookOpen className="h-3.5 w-3.5" /> Yuklash
+                        </button>
+
                         {/* AI Summarize Button */}
                         <button
                           onClick={handleSummarizeBook}
@@ -4161,7 +4211,7 @@ export default function UltimateCyberTechPage() {
                       </button>
                       <span className="text-xs font-mono text-slate-500">Bob: {activeChapterIndex + 1} / {activeBook.chapters.length}</span>
                       <button
-                        disabled={activeChapterIndex === activeBook.book.chapters?.length - 1 || activeChapterIndex === activeBook.chapters.length - 1}
+                        disabled={activeChapterIndex === activeBook.chapters.length - 1}
                         onClick={() => handleBookChapterChange(activeChapterIndex + 1)}
                         className="px-3 py-1.5 bg-white/5 border border-white/10 text-xs font-semibold rounded-lg text-slate-300 hover:text-white disabled:opacity-30 transition"
                       >
