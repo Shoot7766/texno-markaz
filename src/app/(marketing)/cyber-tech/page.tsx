@@ -2829,6 +2829,10 @@ export default function UltimateCyberTechPage() {
   // Book Reader actions
   const handleOpenBook = (book: any) => {
     playClickSound();
+    if (book.pdfUrl) {
+      window.open(book.pdfUrl, '_blank');
+      return;
+    }
     setActiveBook(book);
     const savedChapter = bookBookmarks[book.id] || 0;
     setActiveChapterIndex(savedChapter);
@@ -2839,6 +2843,11 @@ export default function UltimateCyberTechPage() {
   const handleDownloadBook = (book: any) => {
     if (!book) return;
     playClickSound();
+    
+    if (book.pdfUrl) {
+      window.open(book.pdfUrl, '_blank');
+      return;
+    }
     
     // Construct rich text content
     let content = `==================================================\n`;

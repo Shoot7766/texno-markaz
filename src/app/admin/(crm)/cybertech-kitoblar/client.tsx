@@ -21,6 +21,7 @@ interface Book {
   coverColor: string;
   summary: string;
   chapters: Chapter[];
+  pdfUrl?: string;
 }
 
 interface Props {
@@ -56,6 +57,7 @@ export function CybertechBooksClient({ initialBooks }: Props) {
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [coverColor, setCoverColor] = useState(COVER_GRADIENTS[0].value);
   const [summary, setSummary] = useState("");
+  const [pdfUrl, setPdfUrl] = useState("");
   const [chapters, setChapters] = useState<Chapter[]>([{ title: "1-Bob: Muqaddima", content: "" }]);
 
   const toast = (type: "ok" | "err", msg: string) => {
@@ -71,6 +73,7 @@ export function CybertechBooksClient({ initialBooks }: Props) {
     setCategory(CATEGORIES[0]);
     setCoverColor(COVER_GRADIENTS[0].value);
     setSummary("");
+    setPdfUrl("");
     setChapters([{ title: "1-Bob: Muqaddima", content: "" }]);
     setIsModalOpen(true);
   };
@@ -83,6 +86,7 @@ export function CybertechBooksClient({ initialBooks }: Props) {
     setCategory(book.category);
     setCoverColor(book.coverColor || COVER_GRADIENTS[0].value);
     setSummary(book.summary);
+    setPdfUrl(book.pdfUrl || "");
     setChapters(book.chapters && book.chapters.length > 0 ? book.chapters : [{ title: "1-Bob: Muqaddima", content: "" }]);
     setIsModalOpen(true);
   };
@@ -126,7 +130,7 @@ export function CybertechBooksClient({ initialBooks }: Props) {
         // Edit existing
         updatedBooks = books.map((b) =>
           b.id === editingBookId
-            ? { ...b, title, author, pages, category, coverColor, summary, chapters }
+            ? { ...b, title, author, pages, category, coverColor, summary, pdfUrl: pdfUrl.trim() || undefined, chapters }
             : b
         );
       } else {
@@ -139,6 +143,7 @@ export function CybertechBooksClient({ initialBooks }: Props) {
           category,
           coverColor,
           summary,
+          pdfUrl: pdfUrl.trim() || undefined,
           chapters,
         };
         updatedBooks = [...books, newBook];
@@ -320,6 +325,18 @@ export function CybertechBooksClient({ initialBooks }: Props) {
             <form onSubmit={handleSaveBook} className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Form content */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Kitob PDF havolasi (URL)</label>
+                  <input
+                    type="url"
+                    value={pdfUrl}
+                    onChange={(e) => setPdfUrl(e.target.value)}
+                    placeholder="Ixtiyoriy, masalan: https://library.ziyonet.uz/uploads/books/Informatika_8.pdf"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400">Agar havola kiritilsa, saytda kitob bevosita shu PDF fayl shaklida yuklab olinadi va yangi oynada ochiladi.</p>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-600 uppercase">Kitob sarlavhasi</label>
                   <input
