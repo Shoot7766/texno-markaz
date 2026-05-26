@@ -46,12 +46,12 @@ Sizning vazifangiz:
 }
 
 QAYD:
-- Faqat toza JSON qaytaring. Har bir bob ("chapters") matni boy va mazmunli bo'lsin.
-- 1 tadan 3 tagacha mantiqiy boblarga ajrating.
+- Faqat toza JSON qaytaring. Har bir bob ("chapters") matni boy, mazmunli va foydali bo'lsin.
+- Matndagi barcha mantiqiy boblar va mavzularni to'liq ajratib oling. Matn hajmiga qarab, kitobni barcha tegishli boblarga (masalan: 1-Bob, 2-Bob, 3-Bob, 4-Bob, 5-Bob va h.k.) to'liq va mukammal ajrating. Sun'iy ravishda boblar sonini cheklamang, matndagi har bir muhim bo'lim va mavzuni alohida to'liq bob sifatida shakllantiring.
 
 KITOB MATNI:
 ---
-${text.substring(0, 15000)}
+${text.substring(0, 45000)}
 ---
 `;
 

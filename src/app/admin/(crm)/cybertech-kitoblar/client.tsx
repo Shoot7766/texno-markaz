@@ -98,7 +98,7 @@ export function CybertechBooksClient({ initialBooks }: Props) {
       const pdf = await loadingTask.promise;
 
       let extractedText = "";
-      const maxPages = Math.min(pdf.numPages, 10);
+      const maxPages = Math.min(pdf.numPages, 35);
 
       for (let i = 1; i <= maxPages; i++) {
         const page = await pdf.getPage(i);
