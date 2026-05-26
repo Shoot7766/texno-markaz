@@ -65,10 +65,79 @@ export default function AiQuizGeneratorPage() {
   const [isPending, startTransition]  = useTransition();
   const [notice, setNotice]           = useState<{ type: "ok" | "err"; msg: string } | null>(null);
   const [saved, setSaved]             = useState(false);
+  const [parsingPdf, setParsingPdf]   = useState(false);
 
   const toast = (type: "ok" | "err", msg: string) => {
     setNotice({ type, msg });
     setTimeout(() => setNotice(null), 5000);
+  };
+
+  const handlePdfUpload = async (file: File) => {
+    if (!file) return;
+    if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+      toast("err", "Faqat PDF formatidagi fayllarni yuklash mumkin.");
+      return;
+    }
+
+    setParsingPdf(true);
+    setSaved(false);
+
+    try {
+      // Load PDF.js dynamically from CDN
+      const pdfjs = await new Promise<any>((resolve, reject) => {
+        if ((window as any).pdfjsLib) {
+          resolve((window as any).pdfjsLib);
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+        script.onload = () => {
+          const pdfjsLib = (window as any).pdfjsLib;
+          pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+          resolve(pdfjsLib);
+        };
+        script.onerror = () => reject(new Error("PDF.js kutubxonasini yuklab bo'lmadi."));
+        document.head.appendChild(script);
+      });
+
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+
+      let extractedText = "";
+      const maxPages = Math.min(pdf.numPages, 15);
+
+      for (let i = 1; i <= maxPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(" ");
+        extractedText += pageText + "\n\n";
+      }
+
+      // Format clean-up
+      extractedText = extractedText.replace(/\s+/g, " ").trim();
+
+      if (extractedText.length < 50) {
+        toast("err", "PDF matni juda qisqa yoki PDF skanerlangan tasvir formatida (rasmli PDF).");
+        return;
+      }
+
+      if (extractedText.length > 15000) {
+        extractedText = extractedText.substring(0, 15000);
+        toast("ok", `PDF o'qildi. Matn 15,000 belgi chegarasiga moslab qisqartirildi.`);
+      } else {
+        toast("ok", `PDF muvaffaqiyatli o'qildi: ${pdf.numPages} sahifa, ${extractedText.length} ta belgi.`);
+      }
+
+      setText(extractedText);
+    } catch (err: any) {
+      console.error("PDF Parsing error:", err);
+      toast("err", "PDF faylini tahlil qilishda xatolik yuz berdi.");
+    } finally {
+      setParsingPdf(false);
+    }
   };
 
   // ── Generate ───────────────────────────────────────────────────────────────
@@ -196,8 +265,40 @@ export default function AiQuizGeneratorPage() {
               <FileText className="h-4 w-4 text-blue-500" />
               Matn yoki kitob matni
             </h2>
+
+            {/* PDF Upload zone */}
+            <div className="relative border-2 border-dashed border-slate-200 hover:border-violet-400 rounded-xl p-4 bg-slate-50/50 hover:bg-violet-50/10 transition group text-center cursor-pointer">
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handlePdfUpload(file);
+                }}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="flex flex-col items-center justify-center space-y-1">
+                {parsingPdf ? (
+                  <>
+                    <Loader2 className="h-6 w-6 text-violet-500 animate-spin" />
+                    <span className="text-xs font-bold text-violet-600 animate-pulse">PDF matni tahlil qilinmoqda...</span>
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="h-6 w-6 text-slate-400 group-hover:text-violet-500 transition duration-300" />
+                    <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-800 transition">
+                      PDF fayl yuklash yoki sudrab kelish
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      Maks 15 sahifa, matnli PDF (OCR bo'lmagan)
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
             <textarea
-              rows={12}
+              rows={10}
               value={text}
               onChange={e => setText(e.target.value)}
               placeholder={`Bu yerga kitob yoki maqola matnini joylashtiring...\n\nMasalan:\n- Kitob bobini nusxalab yopishtirsangiz\n- Wikipedia maqolasi\n- Darslik matni\n- Istalgan o'quv materiali\n\nMinimum: 100 belgi\nMaksimum: 15,000 belgi`}
