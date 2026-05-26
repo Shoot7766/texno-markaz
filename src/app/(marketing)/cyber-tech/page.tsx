@@ -2119,6 +2119,7 @@ export default function UltimateCyberTechPage() {
     { sender: "mentor", text: "Salom! Men Kiber-Mentor yordamchiman. O'rganayotgan darslaringiz bo'yicha savollaringiz bormi?" }
   ]);
   const [mentorInput, setMentorInput] = useState("");
+  const [mentorTyping, setMentorTyping] = useState(false);
 
   const [activeTipIdx, setActiveTipIdx] = useState(0);
   const [tipsVisible, setTipsVisible] = useState(true);
@@ -2690,34 +2691,41 @@ export default function UltimateCyberTechPage() {
   };
 
   // AI Mentor Chatbot engine
-  const handleSendMentorMessage = () => {
-    if (!mentorInput.trim()) return;
+  const handleSendMentorMessage = async () => {
+    if (!mentorInput.trim() || mentorTyping) return;
     playClickSound();
     const userText = mentorInput.trim();
     const updatedMsgs = [...mentorMessages, { sender: "user" as const, text: userText }];
     setMentorMessages(updatedMsgs);
     setMentorInput("");
+    setMentorTyping(true);
 
-    // Simulated parsing logic
-    setTimeout(() => {
-      let reply = "Bu juda ajoyib savol! Ammo men faqat kiberxavfsizlik, dasturlash, va IT texnologiyalariga oid savollarga javob bera olaman.";
-      const lower = userText.toLowerCase();
-
-      if (lower.includes("phishing") || lower.includes("fishing")) {
-        reply = "Phishing (fishing) - bu xakerlar tomonidan soxta sayt yoki SMS'lar orqali parollaringizni o'g'irlash usulidir. Doim havolaning yozilishini tekshiring!";
-      } else if (lower.includes("python")) {
-        reply = "Python - dunyodagi eng oson va kuchli dasturlash tillaridan biri. Unda sun'iy intellekt, neyron tarmoqlar va veb-saytlar yaratsa bo'ladi. Masalan: `print('Salom')` kodi ekranga Salom so'zini chiqaradi.";
-      } else if (lower.includes("neyron") || lower.includes("ai") || lower.includes("intellekt")) {
-        reply = "Sun'iy neyronlar inson miyasi kabi ishlaydi. Kirish ma'lumotlarini og'irlik koeffitsiyentiga ko'paytirib, Sigmoid kabi aktivatsiya funksiyalari orqali natija beradi.";
-      } else if (lower.includes("arduino") || lower.includes("robot")) {
-        reply = "Robototexnikada Arduino eng mashhur mikrokontroller hisoblanadi. U sensorlardan (masalan, ultrasonik masofa datchigi) ma'lumot olib, loop() ichida harakatlarni takrorlaydi.";
-      } else if (lower.includes("excel") || lower.includes("office")) {
-        reply = "Microsoft Excelda formulalar doim '=' belgisi bilan boshlanadi. Masalan, =IF(A1>=60, 'O'tdi', 'Yiqildi') formulasi shartli hisob-kitoblarni amalga oshiradi.";
+    try {
+      const res = await fetch("/api/cybertech/mentor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userText,
+          history: mentorMessages.slice(-8)
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.reply) {
+        setMentorMessages((prev) => [...prev, { sender: "mentor", text: data.reply }]);
+        playSynthesizedTone([800, 1000], 0.1, "sine", 0.04);
+      } else {
+        throw new Error(data.error || "Xatolik yuz berdi");
       }
-
-      setMentorMessages((prev) => [...prev, { sender: "mentor", text: reply }]);
-      playSynthesizedTone([800, 1000], 0.1, "sine", 0.04);
-    }, 1200);
+    } catch (err: any) {
+      console.error("AI Mentor error:", err);
+      setMentorMessages((prev) => [...prev, {
+        sender: "mentor",
+        text: "Uzr, Kiber-Mentor bilan bog'lanishda muammo yuz berdi. Iltimos, keyinroq qayta urinib ko'ring."
+      }]);
+      playBuzzSound();
+    } finally {
+      setMentorTyping(false);
+    }
   };
 
   // Lesson Select Action
@@ -6225,21 +6233,29 @@ export default function UltimateCyberTechPage() {
                   </div>
                 </div>
               ))}
+              {mentorTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-[#00D1FF]/10 text-cyan-400/80 border border-[#00D1FF]/20 rounded-xl px-3 py-1.5 text-[10px] animate-pulse">
+                    Kiber-Mentor javob yozmoqda...
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Input message form */}
             <div className="p-3 border-t border-white/10 bg-[#0d1022] flex items-center gap-2">
               <input
                 type="text"
-                placeholder="Savolingizni yozing..."
+                placeholder={mentorTyping ? "Kiber-Mentor javob yozmoqda..." : "Savolingizni yozing..."}
                 value={mentorInput}
+                disabled={mentorTyping}
                 onChange={(e) => setMentorInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMentorMessage()}
-                className="flex-1 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-white focus:border-[#00D1FF] outline-none"
+                className="flex-1 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-white focus:border-[#00D1FF] outline-none disabled:opacity-50"
               />
               <button
                 onClick={handleSendMentorMessage}
-                disabled={!mentorInput.trim()}
+                disabled={!mentorInput.trim() || mentorTyping}
                 className="p-2 bg-[#00D1FF] text-black rounded-lg hover:brightness-110 disabled:opacity-50 transition"
               >
                 <Send className="h-3.5 w-3.5" />

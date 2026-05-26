@@ -60,6 +60,93 @@ export function CybertechBooksClient({ initialBooks }: Props) {
   const [pdfUrl, setPdfUrl] = useState("");
   const [chapters, setChapters] = useState<Chapter[]>([{ title: "1-Bob: Muqaddima", content: "" }]);
 
+  // AI PDF upload states
+  const [parsingPdf, setParsingPdf] = useState(false);
+  const [parsingProgress, setParsingProgress] = useState("");
+
+  const handlePdfUploadForAiBook = async (file: File) => {
+    if (!file) return;
+    if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+      toast("err", "Faqat PDF formatidagi fayllarni yuklash mumkin.");
+      return;
+    }
+
+    setParsingPdf(true);
+    setParsingProgress("PDF yuklanmoqda...");
+
+    try {
+      // Load PDF.js dynamically
+      const pdfjs = await new Promise<any>((resolve, reject) => {
+        if ((window as any).pdfjsLib) {
+          resolve((window as any).pdfjsLib);
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+        script.onload = () => {
+          const pdfjsLib = (window as any).pdfjsLib;
+          pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+          resolve(pdfjsLib);
+        };
+        script.onerror = () => reject(new Error("PDF.js yuklab bo'lmadi."));
+        document.head.appendChild(script);
+      });
+
+      setParsingProgress("PDF matnlari ajratib olinmoqda...");
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+
+      let extractedText = "";
+      const maxPages = Math.min(pdf.numPages, 10);
+
+      for (let i = 1; i <= maxPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(" ");
+        extractedText += pageText + "\n\n";
+      }
+
+      extractedText = extractedText.replace(/\s+/g, " ").trim();
+
+      if (extractedText.length < 200) {
+        throw new Error("PDF matni juda qisqa yoki skanerlangan (rasmli PDF).");
+      }
+
+      setParsingProgress("AI kitobni tarjima qilmoqda va boblarga ajratmoqda (30-50s)...");
+
+      const res = await fetch("/api/admin/ai-book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: extractedText })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "AI tahlilida xatolik yuz berdi");
+      }
+
+      setTitle(data.title || "");
+      setAuthor(data.author || "Noma'lum muallif");
+      setPages(data.pages || pdf.numPages);
+      setCategory(data.category || CATEGORIES[0]);
+      setSummary(data.summary || "");
+      if (Array.isArray(data.chapters) && data.chapters.length > 0) {
+        setChapters(data.chapters);
+      }
+
+      toast("ok", "AI kitobni muvaffaqiyatli tarjima qildi va maydonlarni to'ldirdi! Ko'rib chiqing va saqlang.");
+    } catch (err: any) {
+      console.error("AI Book PDF upload error:", err);
+      toast("err", "PDF import xatosi: " + (err.message || "tizim xatosi"));
+    } finally {
+      setParsingPdf(false);
+      setParsingProgress("");
+    }
+  };
+
   const toast = (type: "ok" | "err", msg: string) => {
     setNotice({ type, msg });
     setTimeout(() => setNotice(null), 4000);
@@ -323,6 +410,40 @@ export function CybertechBooksClient({ initialBooks }: Props) {
             </div>
 
             <form onSubmit={handleSaveBook} className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* AI PDF Upload Zone */}
+              {!editingBookId && (
+                <div className="border-2 border-dashed border-blue-200 hover:border-blue-500 rounded-xl p-5 bg-blue-50/10 transition text-center cursor-pointer relative">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handlePdfUploadForAiBook(file);
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={parsingPdf}
+                  />
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    {parsingPdf ? (
+                      <>
+                        <Loader2 className="h-6 w-6 text-blue-600 animate-spin" />
+                        <span className="text-xs font-bold text-blue-600 animate-pulse">{parsingProgress}</span>
+                      </>
+                    ) : (
+                      <>
+                        <BookOpen className="h-7 w-7 text-blue-500" />
+                        <span className="text-sm font-bold text-slate-800">
+                          AI PDF Kitob Yuklash (O'qish, Tarjima va Eslab qolish)
+                        </span>
+                        <span className="text-xs text-slate-500 max-w-md">
+                          Matnli PDF darslikni yuklang. Gemini AI kitobni o'qiydi, o'zbek tiliga o'ta aniq tarjima qiladi, boblarga bo'ladi va platforma xotirasiga (AI Mentor) saqlaydi!
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Form content */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5 md:col-span-2">
