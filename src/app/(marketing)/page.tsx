@@ -16,6 +16,7 @@ import {
   Code2,
 } from "lucide-react";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { BinaryRainBackground } from "@/components/marketing/binary-rain-background";
 import { mergeMissingCatalogCourses } from "@/lib/marketing/course-fallbacks";
 import { partitionGroupsByWeekDays, WEEKDAY_SHORT_UZ } from "@/lib/marketing/week-schedule";
 import { getTimeForDay, formatTimeDisplay } from "@/lib/format-time";
@@ -86,6 +87,7 @@ export default async function HomePage() {
     <div className="overflow-hidden">
       {/* Asosiy: Bepul dars */}
       <section className="relative px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-12">
+        <BinaryRainBackground />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(57,255,20,0.06),transparent)]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_0%,rgba(0,209,255,0.05),transparent)]" />
 
