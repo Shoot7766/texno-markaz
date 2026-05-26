@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/generate-quizzes?secret=cyber_tech_cron_secret_123",
+      "path": "/api/cron/generate-quizzes",
       "schedule": "*/5 * * * *"
     }
   ]
