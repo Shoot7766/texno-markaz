@@ -14,14 +14,25 @@ export async function processCrmAgentPrompt(userPrompt: string): Promise<any> {
   const { data: payments } = await serviceClient.from("payments").select("id, student_id, amount, method, paid_at, note");
   const { data: attendance } = await serviceClient.from("attendance").select("id, student_id, group_id, attendance_date, status");
 
-  // Load books list
+  // Load books list from Supabase
   let books: any[] = [];
   try {
-    const booksFilePath = path.join(process.cwd(), "src/app/(marketing)/cyber-tech/books.json");
-    const fileContent = await fs.readFile(booksFilePath, "utf-8");
-    books = JSON.parse(fileContent);
+    const { data: dbCourse } = await serviceClient
+      .from("courses")
+      .select("description")
+      .eq("slug", "cyber-tech-books-data")
+      .maybeSingle();
+
+    if (dbCourse?.description) {
+      books = JSON.parse(dbCourse.description);
+    } else {
+      // Fallback/Seed from local books.json
+      const booksFilePath = path.join(process.cwd(), "src/app/(marketing)/cyber-tech/books.json");
+      const fileContent = await fs.readFile(booksFilePath, "utf-8");
+      books = JSON.parse(fileContent);
+    }
   } catch (error) {
-    console.error("Error reading books.json in processCrmAgentPrompt:", error);
+    console.error("Error reading books from Supabase in processCrmAgentPrompt:", error);
   }
 
   const crmContext = {
@@ -516,19 +527,42 @@ Muhim qoidalar:
     }
 
   } else if (aiAction.action === "DELETE_ALL_BOOKS") {
-    const booksFilePath = path.join(process.cwd(), "src/app/(marketing)/cyber-tech/books.json");
-    await fs.writeFile(booksFilePath, JSON.stringify([], null, 2), "utf-8");
+    await serviceClient.from("courses").upsert({
+      id: "b000000b-0000-4000-8000-000000000000",
+      name: "Cyber Tech Kutubxonasi",
+      slug: "cyber-tech-books-data",
+      description: JSON.stringify([]),
+      price: 0,
+      duration: "0",
+      is_active: false
+    });
 
   } else if (aiAction.action === "DELETE_BOOK") {
     const p = aiAction.params;
-    const booksFilePath = path.join(process.cwd(), "src/app/(marketing)/cyber-tech/books.json");
     try {
-      const fileContent = await fs.readFile(booksFilePath, "utf-8");
-      const booksList = JSON.parse(fileContent);
+      const { data: dbCourse } = await serviceClient
+        .from("courses")
+        .select("description")
+        .eq("slug", "cyber-tech-books-data")
+        .maybeSingle();
+
+      let booksList = [];
+      if (dbCourse?.description) {
+        booksList = JSON.parse(dbCourse.description);
+      }
       const updated = booksList.filter((b: any) => b.id !== p.book_id);
-      await fs.writeFile(booksFilePath, JSON.stringify(updated, null, 2), "utf-8");
+
+      await serviceClient.from("courses").upsert({
+        id: "b000000b-0000-4000-8000-000000000000",
+        name: "Cyber Tech Kutubxonasi",
+        slug: "cyber-tech-books-data",
+        description: JSON.stringify(updated),
+        price: 0,
+        duration: "0",
+        is_active: false
+      });
     } catch (e) {
-      console.error("Error deleting specific book in helper handler:", e);
+      console.error("Error deleting specific book in crm helper:", e);
     }
   }
 
